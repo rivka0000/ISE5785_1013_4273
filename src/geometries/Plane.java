@@ -17,7 +17,7 @@ public class Plane {
      * Constructor to create a plane using three points (p1, p2, p3).
      * The normal vector will be calculated from the three points.
      * 
-     * @param p1 The first point on the plane
+     * @param p1 The first point on the plane 
      * @param p2 The second point on the plane
      * @param p3 The third point on the plane
      */

@@ -2,7 +2,7 @@ package geometries;
 
 import primitives.Point;
 import primitives.Ray;
-import primitives.Vector;
+import primitives.*;
 
 /**
  * Represents a tube geometry, inheriting from the RadialGeometry class.
@@ -10,7 +10,7 @@ import primitives.Vector;
  */
 public class Tube extends RadialGeometry {
     /** The axis of the tube (represented by a Ray) */
-    protected Ray axis;
+    protected Ray axisRay;
 
     /**
      * Constructor to initialize the tube with a given axis and radius.
@@ -18,9 +18,9 @@ public class Tube extends RadialGeometry {
      * @param axis The axis of the tube
      * @param radius The radius of the tube
      */
-    public Tube(Ray axis, double radius) {
+    public Tube(Ray axisRay, double radius) {
         super(radius);  // Initialize the radius from the parent class
-        this.axis = axis;  // Set the axis of the tube
+        this.axisRay = axisRay;  // Set the axis of the tube
     }
 
     /**
@@ -30,7 +30,22 @@ public class Tube extends RadialGeometry {
      * @param point1 The point on the tube where the normal is needed
      * @return The normal vector at the given point (currently returns null)
      */
-    public Vector getNormal(Point point1) {
-        return null; // Normal vector calculation is not implemented yet
+    @Override
+    public Vector getNormal(Point point) {
+        Point p0 = axisRay.getP0();
+        Vector dir = axisRay.getDir();
+
+        Vector p0ToPoint = point.subtract(p0);
+        double t = dir.dotProduct(p0ToPoint);
+
+        Point o = p0.add(dir.scale(t));
+
+        Vector normal = point.subtract(o);
+
+        if (normal.lengthSquared() == 0) {
+            throw new IllegalArgumentException("Point is on the tube axis, normal is undefined (zero vector)");
+        }
+
+        return normal.normalize();
     }
 }

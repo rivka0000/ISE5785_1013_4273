@@ -30,7 +30,24 @@ public class Cylinder extends Tube {
      * @param point1 The point on the cylinder where the normal is needed
      * @return The normal vector at the given point (currently returns null)
      */
-    public Vector getNormal(Point point1) {
-        return null; // Normal vector calculation is not implemented yet
+    @Override
+    public Vector getNormal(Point point) {
+        Point p0 = axisRay.getP0();
+        Vector dir = axisRay.getDir();
+        Vector p0ToPoint = point.subtract(p0);
+        double t = dir.dotProduct(p0ToPoint);
+
+        if (t <= 0) {
+            // בסיס תחתון
+            return dir.scale(-1);
+        }
+        if (t >= height) {
+            // בסיס עליון
+            return dir;
+        }
+
+        // מעטפת צדדית
+        Point o = p0.add(dir.scale(t));
+        return point.subtract(o).normalize();
     }
 }

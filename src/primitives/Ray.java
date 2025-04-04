@@ -27,6 +27,22 @@ public class Ray {
     }
 
     /**
+     * Gets the origin point of the ray.
+     * @return the origin point
+     */
+    public Point getP0() {
+        return origin;
+    }
+
+    /**
+     * Gets the direction vector of the ray.
+     * @return the direction vector
+     */
+    public Vector getDir() {
+        return direction;
+    }
+    
+    /**
      * Checks if this ray is equal to another object.
      * Two rays are equal if their origin and direction are the same.
      * 

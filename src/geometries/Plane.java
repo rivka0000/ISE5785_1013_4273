@@ -22,8 +22,10 @@ public class Plane {
      * @param p3 The third point on the plane
      */
     public Plane(Point p1, Point p2, Point p3) {
-        this.q = p1;
-        this.normal = null; // Normal calculation is not implemented yet
+    	 this.q = p1;
+    	  Vector v1 = p2.subtract(p1);
+    	  Vector v2 = p3.subtract(p1);
+    	  this.normal = v1.crossProduct(v2).normalize(); 
     }
 
     /**

@@ -1,7 +1,7 @@
 package geometries;
 
 import primitives.Point;
-import primitives.Vector;
+import primitives.*;
 
 /**
  * Represents a sphere in 3D space, inheriting from the RadialGeometry class.
@@ -29,7 +29,7 @@ public class Sphere extends RadialGeometry {
      * @param point1 The point on the sphere where the normal is needed
      * @return The normal vector at the given point (currently returns null)
      */
-    public Vector getNormal(Point point1) {
-        return null; // Normal vector calculation is not implemented yet
+    public Vector getNormal(Point point) {
+    	return point.subtract(center).normalize();
     }
 }

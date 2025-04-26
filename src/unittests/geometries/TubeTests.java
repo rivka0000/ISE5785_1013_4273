@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Unit tests for {@link geometries.Tube} class
  * 
- * @author Ahuva Winkler
+ * @author Ahuva Winkler, Rivka Azrad
  */
 class TubeTests {
 

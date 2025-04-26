@@ -6,7 +6,7 @@ package primitives;
  */
 public class Ray {
     /** The origin point of the ray */
-    private final Point origin;
+    private final Point head;
     
     /** The direction vector of the ray */
     private final Vector direction;
@@ -22,7 +22,7 @@ public class Ray {
         if (origin == null || direction == null) {
             throw new IllegalArgumentException("Origin or direction cannot be null"); // Ensure no null values are passed
         }
-        this.origin = origin; // Set the origin of the ray
+        this.head = origin; // Set the origin of the ray
         this.direction = direction.normalize();  // Normalize the direction vector to ensure it has unit length
     }
 
@@ -31,7 +31,20 @@ public class Ray {
      * @return the origin point
      */
     public Point getP0() {
-        return origin;
+    	return head;
+    }
+    
+    
+    /**
+     * Getter for the point on the ray at a certain distance from the head
+     * @param t the distance from the head
+     * @return the point on the ray at the distance t from the head
+     */
+    public Point getPoint(double t) {
+        // if t is zero, return the head point
+        if(Util.isZero(t))
+            return head;
+        return head.add(direction.scale(t));
     }
 
     /**
@@ -52,7 +65,7 @@ public class Ray {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true; // Check if they are the same object
-        return (obj instanceof Ray other) && this.origin.equals(other.origin) && this.direction.equals(other.direction); // Compare the origin and direction
+        return (obj instanceof Ray other) && this.head.equals(other.head) && this.direction.equals(other.direction); // Compare the origin and direction
     }
 
     /**
@@ -62,6 +75,6 @@ public class Ray {
      */
     @Override
     public String toString() {
-        return "origin=" + origin + ", direction=" + direction; // Return a string with both the origin and direction
+        return "head=" + head + ", direction=" + direction; // Return a string with both the origin and direction
     }
 }

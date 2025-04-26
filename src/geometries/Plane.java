@@ -1,13 +1,17 @@
 package geometries;
 
+import java.util.List;
+
 import primitives.Point;
+import primitives.Ray;
+import primitives.Util;
 import primitives.Vector;
 
 /**
  * Represents a plane in 3D space defined by a point and a normal vector.
  * The class provides methods for retrieving the normal vector of the plane.
  */
-public class Plane {
+public class Plane extends Geometry {
     /** A point on the plane */
     private Point q;
     /** The normal vector of the plane */
@@ -57,5 +61,44 @@ public class Plane {
      */
     public Vector getNormal() {
         return this.normal;
+    }
+    
+    
+    /**
+     * Finds the intersection points between the plane and the given ray.
+     *
+     * @param ray the ray to test for intersection with the plane
+     * @return a list of intersection points, or {@code null} if there are no intersections
+     */
+    @Override
+    public List<Point> findIntersections(Ray ray) {
+    	Point p0 = ray.getP0();
+        Vector dir = ray.getDir();
+        Vector n = normal;
+
+        double nv = Util.alignZero(n.dotProduct(dir));
+
+        // הקרן מקבילה למישור – אין חיתוך
+        if (Util.isZero(nv)) {
+            return null;
+        }
+
+        Vector q0_p0;
+        try {
+            q0_p0 = q.subtract(p0); // וקטור מהמוצא של הקרן אל נקודה על המישור
+        } catch (IllegalArgumentException e) {
+            // הקרן מתחילה בדיוק על המישור => אין חיתוך כי זה לא קדימה על הקרן
+            return null;
+        }
+
+        double t = Util.alignZero(n.dotProduct(q0_p0) / nv);
+
+        // אם t שלילי או אפס – החיתוך הוא מאחורי הקרן או בראש הקרן
+        if (t <= 0) {
+            return null;
+        }
+
+        // חיתוך חוקי אחד קדימה על הקרן
+        return List.of(ray.getPoint(t));
     }
 }

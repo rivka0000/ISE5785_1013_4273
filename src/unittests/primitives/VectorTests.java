@@ -8,7 +8,7 @@ import primitives.Vector;
 
 /**
  * Unit tests for {@link primitives.Vector} class
- * @author Ahuva Winkler
+ * @author Ahuva Winkler, Rivka Azrad
  */
 class VectorTests {
 

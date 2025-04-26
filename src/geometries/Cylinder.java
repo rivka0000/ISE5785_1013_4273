@@ -23,7 +23,7 @@ public class Cylinder extends Tube {
         super(axis, radius);  
         this.height = height;
     }
-    
+     
     /**
      * Gets the normal vector of the cylinder at a specific point.
      * 
@@ -32,22 +32,20 @@ public class Cylinder extends Tube {
      */
     @Override
     public Vector getNormal(Point point) {
-        Point p0 = axisRay.getP0();
-        Vector dir = axisRay.getDir();
-        Vector p0ToPoint = point.subtract(p0);
-        double t = dir.dotProduct(p0ToPoint);
+        double t = axisRay.getDir().dotProduct(point.subtract(axisRay.getP0()));
 
         if (t <= 0) {
             // בסיס תחתון
-            return dir.scale(-1);
+            return axisRay.getDir().scale(-1);
         }
         if (t >= height) {
             // בסיס עליון
-            return dir;
+            return axisRay.getDir();
         }
 
         // מעטפת צדדית
-        Point o = p0.add(dir.scale(t));
+        Point o = axisRay.getPoint(t);
         return point.subtract(o).normalize();
     }
+
 }

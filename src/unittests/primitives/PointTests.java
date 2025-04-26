@@ -7,7 +7,7 @@ import primitives.Vector;
 
 /**
  * Unit tests for {@link primitives.Point} class
- * @author Ahuva Winkler
+ * @author Ahuva Winkler, Rivka Azrad
  */
 class PointTests {
 

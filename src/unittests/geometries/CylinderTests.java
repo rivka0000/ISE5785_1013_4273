@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Unit tests for {@link geometries.Cylinder} class  
  * 
- * @author Ahuva Winkler
+ * @author Ahuva Winkler, Rivka Azrad
  */
 class CylinderTests {
 

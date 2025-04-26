@@ -1,7 +1,13 @@
 package geometries;
-
 import primitives.Point;
 import primitives.*;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.List;
+import java.util.List;
+import java.util.List;
+
 
 /**
  * Represents a sphere in 3D space, inheriting from the RadialGeometry class.
@@ -32,4 +38,62 @@ public class Sphere extends RadialGeometry {
     public Vector getNormal(Point point) {
     	return point.subtract(center).normalize();
     }
+    
+    /**
+     * Finds the intersection points between the triangle and the given ray.
+     * Delegates the intersection logic to the {@link Polygon} implementation, or
+     * implements specific triangle intersection logic if needed.
+     *
+     * @param ray the ray to test for intersection with the triangle
+     * @return a list of intersection points, or {@code null} if there are no intersections
+     */
+    
+    @Override
+    public List<Point> findIntersections(Ray ray) {
+        Point p0 = ray.getP0();
+        Vector dir = ray.getDir();
+        Point o = center;
+
+        Vector u;
+        try {
+            u = o.subtract(p0);
+        } catch (IllegalArgumentException e) {
+            // הקרן מתחילה בדיוק במרכז הכדור
+            return List.of(ray.getPoint(radius));
+        }
+
+        double tm = dir.dotProduct(u);
+        double dSquared = u.lengthSquared() - tm * tm;
+        double rSquared = radius * radius;
+
+        if (Util.alignZero(dSquared - rSquared) >= 0) {
+            return null;
+        }
+
+        double th = Math.sqrt(rSquared - dSquared);
+        double t1 = Util.alignZero(tm - th);
+        double t2 = Util.alignZero(tm + th);
+
+        // ❗ המקרה הקריטי: הקרן בתוך הכדור, בכיוון הצידה (אורתוגונלית), אין חיתוך ממשי
+        if (u.lengthSquared() < rSquared && Util.alignZero(tm) == 0) {
+            return null;
+        }
+
+        if (t1 > 0 && t2 > 0) {
+            return t1 < t2
+                ? List.of(ray.getPoint(t1), ray.getPoint(t2))
+                : List.of(ray.getPoint(t2), ray.getPoint(t1));
+        }
+
+        if (t1 > 0) {
+            return List.of(ray.getPoint(t1));
+        }
+
+        if (t2 > 0) {
+            return List.of(ray.getPoint(t2));
+        }
+
+        return null;
+    }
+
 }

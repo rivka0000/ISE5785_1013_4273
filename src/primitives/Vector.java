@@ -7,6 +7,10 @@ package primitives;
  */
 public class Vector extends Point {
 
+	public static final Vector AXIS_X = new Vector(1, 0, 0);
+	public static final Vector AXIS_Y = new Vector(0, 1, 0);
+	public static final Vector AXIS_Z = new Vector(0, 0, 1);
+
     /**
      * Constructor to initialize a vector with specified x, y, and z coordinates.
      * Ensures the vector is not a zero vector.
@@ -115,3 +119,5 @@ public class Vector extends Point {
         return scale(1 / len); // Scale the vector to make it a unit vector
     }
 }
+
+

@@ -14,7 +14,7 @@ import primitives.Color;
  * size and resolution
  * @author Dan
  */
-final class ImageWriter {
+  public final class ImageWriter {
    /** Horizontal resolution of the image - number of pixels in row */
    private final int           nX;
    /** Vertical resolution of the image - number of pixels in column */
@@ -35,7 +35,7 @@ final class ImageWriter {
     * @param nX amount of pixels by Width
     * @param nY amount of pixels by height
     */
-   ImageWriter(int nX, int nY) {
+    public ImageWriter(int nX, int nY) {
       this.nX = nX;
       this.nY = nY;
 
@@ -62,7 +62,7 @@ final class ImageWriter {
     * to pixel color matrix in the directory of the project
     * @param imageName the name of png file
     */
-   void writeToImage(String imageName) {
+    public void writeToImage(String imageName) {
       try {
          File file = new File(FOLDER_PATH + '/' + imageName + ".png");
          ImageIO.write(image, "png", file);
@@ -78,6 +78,6 @@ final class ImageWriter {
     * @param yIndex Y axis index of the pixel
     * @param color  final color of the pixel
     */
-   void writePixel(int xIndex, int yIndex, Color color) { image.setRGB(xIndex, yIndex, color.getColor().getRGB()); }
+    public void writePixel(int xIndex, int yIndex, Color color) { image.setRGB(xIndex, yIndex, color.getColor().getRGB()); }
 
 }

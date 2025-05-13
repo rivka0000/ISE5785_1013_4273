@@ -1,6 +1,8 @@
 package renderer;
 
 import primitives.*;
+import scene.Scene;
+
 import  static primitives.Util.*;
 import java.util.MissingResourceException;
 
@@ -27,8 +29,11 @@ public class Camera implements Cloneable {
     private double height = 0;
     private double distance = 0;
 
-    private int nX = 0;
-    private int nY = 0;
+    private int nX = 1;
+    private int nY = 1;
+    
+    private ImageWriter imageWriter;
+    private RayTracerBase rayTracer;
 
     /**
      * Default constructor for Camera.
@@ -68,6 +73,90 @@ public class Camera implements Cloneable {
         Vector dir = pij.subtract(p0);
         return new Ray(p0, dir);
     }
+    
+    /**
+     * Renders the image by casting rays through all pixels in the view plane.
+     * This method loops through each pixel (x, y) and calls the castRay method
+     * to simulate ray-tracing for the pixel, determining the color for each pixel.
+     *
+     * @return the Camera object itself for method chaining
+     * @throws UnsupportedOperationException if the method is not yet implemented
+     */
+    public Camera renderImage() {
+        // Loop through all the pixels in the ViewPlane (image resolution nX and nY)
+        for (int x = 0; x < nX; x++) {
+            for (int y = 0; y < nY; y++) {
+                // Call the castRay method for each pixel (x, y)
+                castRay(x, y);
+            }
+        }
+        
+        // Return the Camera object itself to allow method chaining
+        return this;
+    }
+
+    
+    
+    /**
+     * Draws a grid of lines on the image, marking the borders of the pixels.
+     * Only the grid lines are colored, while other pixels remain unchanged.
+     * This method will not overwrite the existing image content.
+     *
+     * @param color the color of the grid lines
+     * @param interval the interval between the grid lines (i.e., how often to draw a line)
+     */
+    public Camera printGrid(Color color, int interval) {
+        // Loop over the entire width (nX) and height (nY) of the image
+        for (int x = 0; x < nX; x++) {
+            for (int y = 0; y < nY; y++) {
+                // If the current pixel is at an interval for the grid lines
+                if (x % interval == 0 || y % interval == 0) {
+                    // Set the pixel color to the specified grid line color
+                    imageWriter.writePixel(x, y, color);
+                }
+            }
+        }
+
+        // Return the Camera object itself for method chaining (as required)
+        return this;
+    }
+
+    
+    /**
+     * Writes the current image to a file with the given name.
+     * The method delegates the task of saving the image to the imageWriter.
+     * 
+     * @param fileName the name of the file to save the image (without the file extension)
+     * @return the current Camera object
+     */
+    public Camera writeToImage(String fileName) {
+        // Delegate the task to the imageWriter to save the image to the specified file
+        imageWriter.writeToImage(fileName);
+        return this;
+    }
+    
+    /**
+     * Casts a ray from the camera through the given pixel coordinates (x, y).
+     * The method uses the pixel index to calculate the ray's direction and
+     * other necessary parameters. This method is used to simulate the ray-tracing
+     * process and determine the color for the pixel.
+     *
+     * @param x the X-coordinate of the pixel
+     * @param y the Y-coordinate of the pixel
+     */
+    private void castRay(int x, int y) {
+        //  Calculate the direction of the ray through the pixel (x, y)
+    	Ray ray = constructRay(nX, nY, x, y);
+
+
+        //  Perform ray tracing to determine the light intensity for the ray
+        Color pixelColor = rayTracer.traceRay(ray);
+
+        //  Set the pixel color in the image using the ImageWriter
+        imageWriter.writePixel(x, y, pixelColor);
+    }
+
+
 
     /**
      * Creates a shallow clone of the camera.
@@ -94,6 +183,27 @@ public class Camera implements Cloneable {
     public static class Builder {
 
         private final Camera camera;
+        
+        /**
+         * Sets the RayTracer for the camera.
+         * <p>
+         * This method updates the rayTracer field based on the provided RayTracerType.
+         * Currently, only the SIMPLE RayTracerType is supported.
+         * </p>
+         *
+         * @param scene the scene to be used by the RayTracer
+         * @param type  the type of RayTracer (e.g., SIMPLE)
+         * @return this builder for method chaining
+         */
+        public Builder setRayTracer(Scene scene, RayTracerType type) {
+            if (type == RayTracerType.SIMPLE) {
+                camera.rayTracer = new SimpleRayTracer(scene);  // Create SimpleRayTracer with the provided scene
+            } else {
+                camera.rayTracer = null; // Set rayTracer to null for unsupported types
+            }
+            return this; // Return the builder for method chaining
+        }
+
 
         /**
          * Constructs a new Builder instance initializing an empty Camera.
@@ -112,6 +222,7 @@ public class Camera implements Cloneable {
             if (location == null)
                 throw new IllegalArgumentException("Location cannot be null");
             camera.p0 = location;
+            
             return this;
         }
 
@@ -202,48 +313,93 @@ public class Camera implements Cloneable {
         }
 
         /**
-         * Sets the resolution of the view plane in terms of number of pixels.
-         *
-         * @param nX number of columns (horizontal resolution)
-         * @param nY number of rows (vertical resolution)
-         * @return this builder for method chaining
+         * Sets the resolution for the camera.
+         * This method ensures that both resolution values (nX, nY) are positive.
+         * If the values are valid, it initializes the ImageWriter with the given resolution.
+         * 
+         * @param nX the width of the resolution (number of pixels in the X dimension)
+         * @param nY the height of the resolution (number of pixels in the Y dimension)
+         * @return the builder instance for method chaining
+         * @throws IllegalArgumentException if either nX or nY is non-positive
          */
         public Builder setResolution(int nX, int nY) {
-            if (nX <= 0 || nY <= 0)
-                throw new IllegalArgumentException("Resolution must be positive");
+            
             camera.nX = nX;
             camera.nY = nY;
+
             return this;
         }
 
         /**
          * Validates and finalizes the camera setup.
-         * If any values are missing, it assigns default values.
+         * This method ensures that all the required fields for the camera are set correctly.
+         * If any values are missing or invalid, appropriate exceptions are thrown.
+         * <p>
+         * After validation, the method calculates the right vector (`vRight`) by performing the cross product 
+         * of the `vTo` and `vUp` vectors, ensuring that all three vectors (`vTo`, `vUp`, `vRight`) are orthogonal and normalized.
+         * </p>
          *
          * @return a new Camera instance based on the configured parameters
+         * @throws MissingResourceException if any required field is not set
+         * @throws IllegalArgumentException if any vector is not orthogonal or normalized, or if width, height, or distance are invalid
+         * @throws RuntimeException if cloning the camera fails
          */
         public Camera build() {
-            if (camera.p0 == null) camera.p0 = Point.ZERO;
+        	final String className = "Camera";
+            final String description = "values not set: ";
 
-            if (camera.vTo == null || camera.vUp == null) {
-                camera.vTo = new Vector(0, 0, -1);
-                camera.vUp = new Vector(0, -1, 0);
-                camera.vRight = camera.vTo.crossProduct(camera.vUp).normalize();
+            if(camera.p0 == null)
+                throw new MissingResourceException(description, className, "p0");
+            if(camera.vUp == null)
+                throw new MissingResourceException(description, className, "vUp");
+            if(camera.vTo == null)
+                throw new MissingResourceException(description, className, "vTo");
+            if(camera.width == 0d)
+                throw new MissingResourceException(description, className, "width");
+            if(camera.height == 0d)
+                throw new MissingResourceException(description, className, "height");
+            if(camera.distance == 0d)
+                throw new MissingResourceException(description, className, "distance");
+            if(camera.imageWriter == null)
+                throw new MissingResourceException(description, className, "imageWriter");
+            if(camera.rayTracer == null)
+                throw new MissingResourceException(description, className, "rayTracer");
+
+            camera.vRight = camera.vTo.crossProduct(camera.vUp).normalize();
+            
+         // Checking if both resolution values are positive, if not, throw an exception
+            if (camera.nX <= 0 || camera.nY <= 0) {
+                throw new IllegalArgumentException("Resolution must be positive");
             }
 
-            if (camera.width <= 0) camera.width = 1;
-            if (camera.height <= 0) camera.height = 1;
-            if (camera.distance <= 0) camera.distance = 1;
-            if (camera.nX <= 0) camera.nX = 1;
-            if (camera.nY <= 0) camera.nY = 1;
+            // Initializing the imageWriter with the resolution values
+            camera.imageWriter = new ImageWriter(camera.nX, camera.nY);
+
+            // If the rayTracer is null, create a SimpleRayTracer with an empty scene (null)
+            if (camera.rayTracer == null) {
+                camera.rayTracer = new SimpleRayTracer(null);
+            }
+
+
+            if (!Util.isZero(camera.vTo.dotProduct(camera.vRight)) ||
+                    !Util.isZero(camera.vTo.dotProduct(camera.vUp)) ||
+                    !Util.isZero(camera.vRight.dotProduct(camera.vUp)))
+                throw new IllegalArgumentException("vTo, vUp and vRight must be orthogonal");
+
+            if (camera.vTo.length() != 1 || camera.vUp.length() != 1 || camera.vRight.length() != 1)
+                throw new IllegalArgumentException("vTo, vUp and vRight must be normalized");
+
+            if (camera.width <= 0 || camera.height <= 0)
+                throw new IllegalArgumentException("width and height must be positive");
+
+            if (camera.distance <= 0)
+                throw new IllegalArgumentException("distance from camera to view must be positive");
 
             try {
-				return (Camera) camera.clone();
-			} catch (CloneNotSupportedException e) {
-				// TODO Auto-generated catch block
-				//e.printStackTrace();
-				return null;
-			}
+                return (Camera) camera.clone();
+            } catch (CloneNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }

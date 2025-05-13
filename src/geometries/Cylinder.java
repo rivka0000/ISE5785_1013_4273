@@ -22,7 +22,7 @@ public class Cylinder extends Tube {
     public Cylinder(Ray axis, double radius, double height) {
         super(axis, radius);  
         this.height = height;
-    }
+    } 
      
     /**
      * Gets the normal vector of the cylinder at a specific point.

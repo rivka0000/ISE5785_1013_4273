@@ -86,7 +86,7 @@ public class CameraIntersectionsIntegrationTests {
         Plane plane = new Plane(new Point(0, 0, -5), new Vector(0, 0, 1));
         int count = countIntersections(camera, plane, 3, 3);
         assertEquals(9, count, "Wrong number of intersections with plane");
-    }
+    } 
 
     /**
      * Test for ray-triangle intersections. A small triangle is positioned such that only the center ray hits it.

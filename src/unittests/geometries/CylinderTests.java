@@ -17,7 +17,7 @@ class CylinderTests {
 
     /**
      * Test method for {@link geometries.Cylinder#getNormal(primitives.Point)}.
-     */
+     */ 
     @Test
     void testGetNormal() {
         // ============ Equivalence Partitions Tests ==============

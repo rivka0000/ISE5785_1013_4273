@@ -45,7 +45,7 @@ class SphereTests {
      */ 
     @Test 
     public void testFindIntersections() { 
-       Sphere       sphere = new Sphere(p100, 1d); 
+      final Sphere       sphere = new Sphere(p100, 1d); 
 
        final Point  gp1    = new Point(0.0651530771650466, 0.355051025721682, 0); 
        final Point  gp2    = new Point(1.53484692283495, 0.844948974278318, 0); 

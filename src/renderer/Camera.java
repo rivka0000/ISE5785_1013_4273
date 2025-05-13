@@ -1,6 +1,7 @@
 package renderer;
 
 import primitives.*;
+import  static primitives.Util.*;
 import java.util.MissingResourceException;
 
 /**
@@ -74,14 +75,14 @@ public class Camera implements Cloneable {
      * @return a cloned Camera object
      * @throws AssertionError if cloning is not supported
      */
-    @Override
-    protected Object clone() {
-        try {
-            return super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new AssertionError("Cloning failed unexpectedly", e);
-        }
-    }
+//    @Override
+//    protected Object clone() {
+//        try {
+//            return super.clone();
+//        } catch (CloneNotSupportedException e) {
+//            throw new AssertionError("Cloning failed unexpectedly", e);
+//        }
+//    }
 
     /**
      * Builder class for constructing Camera objects step by step.
@@ -126,13 +127,13 @@ public class Camera implements Cloneable {
         public Builder setDirection(Vector vTo, Vector vUp) {
             if (vTo == null || vUp == null)
                 throw new IllegalArgumentException("Direction vectors cannot be null");
+            if ( !isZero(vTo.dotProduct(vUp) ))
+                throw new IllegalArgumentException("vTo and vUp must be orthogonal");
 
             vTo = vTo.normalize();
             vUp = vUp.normalize();
 
-            if (Math.abs(vTo.dotProduct(vUp)) > 1e-10)
-                throw new IllegalArgumentException("vTo and vUp must be orthogonal");
-
+           
             camera.vTo = vTo;
             camera.vUp = vUp;
             camera.vRight = vTo.crossProduct(vUp).normalize();
@@ -236,7 +237,13 @@ public class Camera implements Cloneable {
             if (camera.nX <= 0) camera.nX = 1;
             if (camera.nY <= 0) camera.nY = 1;
 
-            return (Camera) camera.clone();
+            try {
+				return (Camera) camera.clone();
+			} catch (CloneNotSupportedException e) {
+				// TODO Auto-generated catch block
+				//e.printStackTrace();
+				return null;
+			}
         }
     }
 }

@@ -360,8 +360,6 @@ public class Camera implements Cloneable {
                 throw new MissingResourceException(description, className, "height");
             if(camera.distance == 0d)
                 throw new MissingResourceException(description, className, "distance");
-            if(camera.imageWriter == null)
-                throw new MissingResourceException(description, className, "imageWriter");
             if(camera.rayTracer == null)
                 throw new MissingResourceException(description, className, "rayTracer");
 
@@ -374,6 +372,8 @@ public class Camera implements Cloneable {
 
             // Initializing the imageWriter with the resolution values
             camera.imageWriter = new ImageWriter(camera.nX, camera.nY);
+            if(camera.imageWriter == null)
+                throw new MissingResourceException(description, className, "imageWriter");
 
             // If the rayTracer is null, create a SimpleRayTracer with an empty scene (null)
             if (camera.rayTracer == null) {

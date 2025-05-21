@@ -4,9 +4,7 @@ import primitives.*;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.List;
-import java.util.List;
-import java.util.List;
+
 
 
 /**
@@ -47,19 +45,17 @@ public class Sphere extends RadialGeometry {
      * @param ray the ray to test for intersection with the triangle
      * @return a list of intersection points, or {@code null} if there are no intersections
      */
-    
     @Override
-    public List<Point> findIntersections(Ray ray) {
+    protected List<Intersection> calculateIntersectionsHelper(Ray ray) {
         Point p0 = ray.getP0();
         Vector dir = ray.getDir();
-        Point o = center;
 
         Vector u;
         try {
-            u = o.subtract(p0);
+            u = center.subtract(p0);
         } catch (IllegalArgumentException e) {
-            // הקרן מתחילה בדיוק במרכז הכדור
-            return List.of(ray.getPoint(radius));
+            // Ray starts exactly at the sphere's center
+            return List.of(new Intersection(this, ray.getPoint(radius)));
         }
 
         double tm = dir.dotProduct(u);
@@ -74,26 +70,10 @@ public class Sphere extends RadialGeometry {
         double t1 = Util.alignZero(tm - th);
         double t2 = Util.alignZero(tm + th);
 
-        // ❗ המקרה הקריטי: הקרן בתוך הכדור, בכיוון הצידה (אורתוגונלית), אין חיתוך ממשי
-        if (u.lengthSquared() < rSquared && Util.alignZero(tm) == 0) {
-            return null;
-        }
+        List<Intersection> result = new LinkedList<>();
+        if (t1 > 0) result.add(new Intersection(this, ray.getPoint(t1)));
+        if (t2 > 0) result.add(new Intersection(this, ray.getPoint(t2)));
 
-        if (t1 > 0 && t2 > 0) {
-            return t1 < t2
-                ? List.of(ray.getPoint(t1), ray.getPoint(t2))
-                : List.of(ray.getPoint(t2), ray.getPoint(t1));
-        }
-
-        if (t1 > 0) {
-            return List.of(ray.getPoint(t1));
-        }
-
-        if (t2 > 0) {
-            return List.of(ray.getPoint(t2));
-        }
-
-        return null;
+        return result.isEmpty() ? null : result;
     }
-
 }

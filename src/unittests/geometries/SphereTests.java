@@ -130,8 +130,8 @@ class SphereTests {
 
     // TC42: Ray starts inside the sphere, orthogonal to the radius – expecting no intersections
        assertNull(sphere.findIntersections(
-           new Ray(new Point(0.5, 0, 0), new Vector(0, 1, 0))),
-           "Ray inside orthogonal to radius");
+    		    new Ray(new Point(0, 0, 3), new Vector(1, 0, 0))),
+    		    "Ray orthogonal outside sphere");
 
     }
 

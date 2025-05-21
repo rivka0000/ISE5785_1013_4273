@@ -1,6 +1,5 @@
 package geometries;
 
-import static java.lang.Double.*;
 import java.util.List;
 import static primitives.Util.*;
 import primitives.*;
@@ -81,9 +80,8 @@ public class Polygon extends Geometry {
    public Vector getNormal(Point point) { return plane.getNormal(point); }
    
    @Override
-	public List<Point> findIntersections(Ray ray) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
+   protected List<Intersection> calculateIntersectionsHelper(Ray ray) {
+       return null;
+   }
+   
 }

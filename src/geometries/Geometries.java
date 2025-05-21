@@ -3,47 +3,60 @@ package geometries;
 import java.util.LinkedList;
 import java.util.List;
 
-import primitives.Point;
 import primitives.Ray;
 
-public class Geometries implements Intersectable {
-	
-	    // A list of intersectable geometric bodies (cannot be reassigned, only modified)
-	    private final List<Intersectable> geometries = new LinkedList<>();
-	    
-	    // בנאי ברירת מחדל (ריק)
-	    public Geometries() {}
+/**
+ * Composite class representing a collection of geometries.
+ */
+public class Geometries extends Intersectable {
 
-	    // בנאי עם החתימה שניתנה
-	    public Geometries(Intersectable... geometries) {
-	        add(geometries); // שימוש במתודת add להוספת הגופים לאגד
-	    }
+    /** A list of intersectable geometric bodies */
+    private final List<Intersectable> geometries = new LinkedList<>();
 
-	    // מתודה להוספת גופים לאגד
-	    public void add(Intersectable... geometries) {
-	        for (Intersectable geometry : geometries) {
-	            this.geometries.add(geometry); // הוספת כל גוף לרשימה
-	        }
-	    }
+    /** Default constructor */
+    public Geometries() {}
 
-	    // מימוש מתודת findIntersections (כרגע מחזירה null)
-	    @Override
-	    public List<Point> findIntersections(Ray ray) {
-	        List<Point> intersections = null;
+    /**
+     * Constructor that takes a variable number of geometries to add.
+     * 
+     * @param geometries the geometries to add
+     */
+    public Geometries(Intersectable... geometries) {
+        add(geometries);
+    }
 
-	        for (Intersectable item : geometries) {
-	            List<Point> itemIntersections = item.findIntersections(ray);
-	            if (itemIntersections != null) {
-	                if (intersections == null) {
-	                    // אתחול ראשון של הרשימה ברגע שמוצאים חיתוך ראשון
-	                    intersections = new LinkedList<>();
-	                }
-	                intersections.addAll(itemIntersections);
-	            }
-	        }
+    /**
+     * Adds geometries to the collection.
+     * 
+     * @param geometries the geometries to add
+     */
+    public void add(Intersectable... geometries) {
+        for (Intersectable geometry : geometries) {
+            this.geometries.add(geometry);
+        }
+    }
 
-	        return intersections;
-	    }
+    /**
+     * Implementation of the abstract method from Intersectable.
+     * Returns all intersections between the given ray and the geometries in the collection.
+     *
+     * @param ray the ray to intersect with the geometries
+     * @return list of intersections, or null if none
+     */
+    @Override
+    protected List<Intersection> calculateIntersectionsHelper(Ray ray) {
+        List<Intersection> result = null;
 
+        for (Intersectable geometry : geometries) {
+            List<Intersection> itemIntersections = geometry.calculateIntersections(ray);
+            if (itemIntersections != null) {
+                if (result == null) {
+                    result = new LinkedList<>();
+                }
+                result.addAll(itemIntersections);
+            }
+        }
 
+        return result;
+    }
 }

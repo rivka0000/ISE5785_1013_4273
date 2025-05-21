@@ -51,10 +51,11 @@ public class Tube extends RadialGeometry {
 
         return normal.normalize();
     }
+    
+    @Override
+    protected List<Intersection> calculateIntersectionsHelper(Ray ray) {
+        return null; // placeholder - no intersection calculation for now
+    }
 
-	@Override
-	public List<Point> findIntersections(Ray ray) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	
 }

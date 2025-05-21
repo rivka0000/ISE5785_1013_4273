@@ -1,6 +1,7 @@
 package primitives;
 
 import java.util.List;
+import geometries.Intersectable.Intersection;
 
 /**
  * Represents a ray in 3D space.
@@ -103,4 +104,33 @@ public class Ray {
 
         return closest;
     }
+    
+    
+
+    /**
+     * Finds the closest intersection point to the ray's origin from a list of intersections.
+     *
+     * @param intersections List of Intersection objects
+     * @return The closest Intersection, or null if list is null or empty
+     */
+    public Intersection findClosestIntersection(List<Intersection> intersections) {
+        if (intersections == null || intersections.isEmpty()) {
+            return null;
+        }
+
+        double minDistanceSquared = Double.POSITIVE_INFINITY;
+        Intersection closest = null;
+
+        for (Intersection intersection : intersections) {
+            double distanceSquared = head.distanceSquared(intersection.point);
+            if (distanceSquared < minDistanceSquared) {
+                minDistanceSquared = distanceSquared;
+                closest = intersection;
+            }
+        }
+
+        return closest;
+    }
+    
+    
 }

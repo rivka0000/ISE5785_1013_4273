@@ -8,7 +8,9 @@ import org.junit.jupiter.api.Test;
 
 import geometries.*;
 import primitives.*;
-import renderer.Camera;
+import renderer.*;
+import scene.Scene;
+
 
 /**
  * Integration tests between the Camera class and geometric objects.
@@ -62,6 +64,7 @@ public class CameraIntersectionsIntegrationTests {
             .setVpDistance(1)
             .setVpSize(3, 3)
             .setResolution(3, 3)
+            .setRayTracer(new Scene("test"), RayTracerType.SIMPLE)
             .build();
 
         Sphere sphere = new Sphere(new Point(0, 0, -3), 1d);
@@ -81,6 +84,7 @@ public class CameraIntersectionsIntegrationTests {
             .setVpDistance(1)
             .setVpSize(3, 3)
             .setResolution(3, 3)
+            .setRayTracer(new Scene("test"), RayTracerType.SIMPLE)
             .build();
 
         Plane plane = new Plane(new Point(0, 0, -5), new Vector(0, 0, 1));
@@ -100,6 +104,7 @@ public class CameraIntersectionsIntegrationTests {
             .setVpDistance(1)
             .setVpSize(3, 3)
             .setResolution(3, 3)
+            .setRayTracer(new Scene("test"), RayTracerType.SIMPLE)
             .build();
 
         Triangle triangle = new Triangle(

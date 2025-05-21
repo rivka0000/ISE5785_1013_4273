@@ -1,22 +1,77 @@
 package geometries;
 
-import java.util.List;
 import primitives.Point;
 import primitives.Ray;
 
+import java.util.List;
+import java.util.Objects;
+
 /**
- * Interface representing objects that can be intersected by a ray.
- * Any geometric shape that wants to allow intersection computations
- * should implement this interface.
+ * Abstract base class for all geometries that can be intersected by a ray.
  */
-public interface Intersectable {
+public abstract class Intersectable {
 
     /**
-     * Finds all intersection points between the geometry and the given ray.
-     *
-     * @param ray the ray to intersect with the geometry
-     * @return a list of intersection points, or {@code null} if there are no intersections
+     * Passive data structure representing a point of intersection between a ray and a geometry.
      */
-    List<Point> findIntersections(Ray ray);
-}
+    public static class Intersection {
+        public final Geometry geometry;
+        public final Point point;
 
+        /**
+         * Constructs an Intersection object with the given geometry and point.
+         * 
+         * @param geometry the intersected geometry
+         * @param point the intersection point
+         */
+        public Intersection(Geometry geometry, Point point) {
+            this.geometry = geometry;
+            this.point = point;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj == null || getClass() != obj.getClass()) return false;
+            Intersection other = (Intersection) obj;
+            return geometry == other.geometry && Objects.equals(point, other.point);
+        }
+
+        @Override
+        public String toString() {
+            return "Intersection{" +
+                   "geometry=" + geometry +
+                   ", point=" + point +
+                   '}';
+        }
+    }
+
+    /**
+     * Template method that delegates the actual intersection computation to a subclass.
+     * 
+     * @param ray the ray to intersect with
+     * @return a list of intersections, or null if none
+     */
+    public final List<Intersection> calculateIntersections(Ray ray) {
+        return calculateIntersectionsHelper(ray);
+    }
+
+    /**
+     * Abstract method that must be implemented by subclasses to calculate intersections.
+     * 
+     * @param ray the ray to intersect with
+     * @return a list of intersections, or null if none
+     */
+    protected abstract List<Intersection> calculateIntersectionsHelper(Ray ray);
+
+    /**
+     * Convenience method that extracts only the intersection points from the Intersection data.
+     * 
+     * @param ray the ray to check for intersections
+     * @return a list of intersection points, or null if none
+     */
+    public final List<Point> findIntersections(Ray ray) {
+        var list = calculateIntersections(ray);
+        return list == null ? null : list.stream().map(inter -> inter.point).toList();
+    }
+}

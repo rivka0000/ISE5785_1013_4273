@@ -51,35 +51,30 @@ public class RenderTests {
          .writeToImage("Two color render test");
    }
 
-   // For stage 6 - please disregard in stage 5
-   /**
-    * Produce a scene with basic 3D model - including individual lights of the
-    * bodies and render it into a png image with a grid
-    */
-   /*@Test
+   @Test
    public void renderMultiColorTest() {
-      Scene scene = new Scene("Multi color").setAmbientLight(new AmbientLight(new Color(51, 51, 51)));
-      scene.geometries //
-         .add(// center
-              new Sphere(new Point(0, 0, -100), 50),
-              // up left
-              new Triangle(new Point(-100, 0, -100), new Point(0, 100, -100), new Point(-100, 100, -100)) //
-                 .setEmission(new Color(GREEN)),
-              // down left
-              new Triangle(new Point(-100, 0, -100), new Point(0, -100, -100), new Point(-100, -100, -100)) //
-                 .setEmission(new Color(RED)),
-              // down right
-              new Triangle(new Point(100, 0, -100), new Point(0, -100, -100), new Point(100, -100, -100)) //
-                 .setEmission(new Color(BLUE)));
+      Scene scene = new Scene("Multi color")
+         .setAmbientLight(new AmbientLight(new Color(51, 51, 51)));
 
-      camera //
-         .setRayTracer(scene, RayTracerType.SIMPLE) //
-         .setResolution(1000, 1000) //
-         .build() //
-         .renderImage() //
-         .printGrid(100, new Color(WHITE)) //
+      scene.geometries.add(
+         new Sphere(new Point(0, 0, -100), 50),
+         new Triangle(new Point(-100, 0, -100), new Point(0, 100, -100), new Point(-100, 100, -100))
+            .setEmission(new Color(GREEN)),
+         new Triangle(new Point(-100, 0, -100), new Point(0, -100, -100), new Point(-100, -100, -100))
+            .setEmission(new Color(RED)),
+         new Triangle(new Point(100, 0, -100), new Point(0, -100, -100), new Point(100, -100, -100))
+            .setEmission(new Color(BLUE))
+      );
+
+      camera
+         .setRayTracer(scene, RayTracerType.SIMPLE)
+         .setResolution(1000, 1000)
+         .build()
+         .renderImage()
+         .printGrid(new Color(WHITE), 100)
          .writeToImage("color render test");
-   }*/
+   }
+
 
    /** Test for XML based scene - for bonus */
    @Test

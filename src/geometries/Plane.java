@@ -71,34 +71,30 @@ public class Plane extends Geometry {
      * @return a list of intersection points, or {@code null} if there are no intersections
      */
     @Override
-    public List<Point> findIntersections(Ray ray) {
-    	Point p0 = ray.getP0();
+    protected List<Intersection> calculateIntersectionsHelper(Ray ray) {
+        Point p0 = ray.getP0();
         Vector dir = ray.getDir();
-        Vector n = normal;
+        double nv = Util.alignZero(normal.dotProduct(dir));
 
-        double nv = Util.alignZero(n.dotProduct(dir));
-
-        // הקרן מקבילה למישור – אין חיתוך
+        // If the ray is parallel to the plane
         if (Util.isZero(nv)) {
             return null;
         }
 
         Vector q0_p0;
         try {
-            q0_p0 = q.subtract(p0); // וקטור מהמוצא של הקרן אל נקודה על המישור
+            q0_p0 = q.subtract(p0);
         } catch (IllegalArgumentException e) {
-            // הקרן מתחילה בדיוק על המישור => אין חיתוך כי זה לא קדימה על הקרן
+            // Ray starts on the plane
             return null;
         }
 
-        double t = Util.alignZero(n.dotProduct(q0_p0) / nv);
-
-        // אם t שלילי או אפס – החיתוך הוא מאחורי הקרן או בראש הקרן
+        double t = Util.alignZero(normal.dotProduct(q0_p0) / nv);
         if (t <= 0) {
             return null;
         }
 
-        // חיתוך חוקי אחד קדימה על הקרן
-        return List.of(ray.getPoint(t));
+        Point intersectionPoint = ray.getPoint(t);
+        return List.of(new Intersection(this, intersectionPoint));
     }
 }

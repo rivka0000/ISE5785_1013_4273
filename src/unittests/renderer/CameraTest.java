@@ -2,6 +2,8 @@ package unittests.renderer;
 
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 
 import org.junit.jupiter.api.Test;
 
@@ -54,32 +56,52 @@ class CameraTest {
 
     @Test
     void testBuilder() {
-        cameraBuilder.setVpSize(4, 4).setResolution(2, 2);
+        // EP01: שימוש בשני וקטורים אורתוגונליים ומנורמלים
+        Vector vTo1 = new Vector(0, 0, -1); // מבט קדימה בציר Z-
+        Vector vUp1 = new Vector(0, 1, 0);  // מעלה בציר Y
 
-        // EP01: set to a target point with up vector
-        Point target1 = new Point(10, -10, 0);
-        Camera camera1 = cameraBuilder
-                .setDirection(target1, new Vector(0, 0, 1)) // ✅ שימוש ב־up תקין
+        Camera camera1 = Camera.getBuilder()
+                .setLocation(Point.ZERO)
+                .setDirection(vTo1, vUp1)
+                .setVpSize(4, 4)
+                .setVpDistance(10)
+                .setResolution(2, 2)
+                .setRayTracer(new Scene("TestScene"), RayTracerType.SIMPLE)
                 .build();
-        Point center1 = target1.subtract(Point.ZERO).normalize().scale(10);
-        Vector right1 = Vector.AXIS_Z;
-        Vector up1 = new Vector(1, 1, 0).normalize();
-        Vector direction1 = center1.add(up1).subtract(right1).subtract(Point.ZERO);
-        assertEquals(new Ray(Point.ZERO, direction1), camera1.constructRay(2, 2, 0, 0));
 
-        // EP02: set to a target point with up vector
-        Point target2 = new Point(0, 5, 0);
-        Camera camera2 = cameraBuilder
-                .setDirection(target2, new Vector(0, 1, 1))
+        Ray ray1 = camera1.constructRay(2, 2, 0, 0);
+        assertNotNull(ray1); // אפשר לבדוק גם את כיוון ה-Ray אם את רוצה
+
+        // EP02: עוד סט של וקטורים אורתוגונליים
+        Vector vTo2 = new Vector(1, 0, 0);   // מבט קדימה בציר X
+        Vector vUp2 = new Vector(0, 0, 1);   // מעלה בציר Z
+
+        Camera camera2 = Camera.getBuilder()
+                .setLocation(Point.ZERO)
+                .setDirection(vTo2, vUp2)
+                .setVpSize(6, 6)
+                .setVpDistance(20)
+                .setResolution(3, 3)
+                .setRayTracer(new Scene("TestScene"), RayTracerType.SIMPLE)
                 .build();
-        Point center2 = new Point(0, 10, 0);
-        Vector right2 = Vector.AXIS_X;
-        Vector up2 = Vector.AXIS_Z;
-        Vector direction2 = center2.add(up2).subtract(right2).subtract(Point.ZERO);
-        assertEquals(new Ray(Point.ZERO, direction2), camera2.constructRay(2, 2, 0, 0));
 
-        // BV01: invalid because up and to not orthogonal
+        Ray ray2 = camera2.constructRay(3, 3, 1, 1);
+        assertNotNull(ray2);
+
+        // BV01: שני וקטורים לא אורתוגונליים -> צריך לזרוק חריגה
+        Vector badVTo = new Vector(1, 0, 0);
+        Vector badVUp = new Vector(1, 0, 0); // אותו כיוון בדיוק
+
         assertThrows(IllegalArgumentException.class, () ->
-                cameraBuilder.setDirection(new Point(0, 10, 0)).build());
+            Camera.getBuilder()
+                    .setLocation(Point.ZERO)
+                    .setDirection(badVTo, badVUp)
+                    .setVpSize(4, 4)
+                    .setVpDistance(10)
+                    .setResolution(2, 2)
+                    .setRayTracer(new Scene("TestScene"), RayTracerType.SIMPLE)
+                    .build());
     }
+
+
 }

@@ -3,6 +3,7 @@ package primitives;
 import java.util.List;
 import geometries.Intersectable.Intersection;
 
+
 /**
  * Represents a ray in 3D space.
  * A ray is defined by its origin point and direction vector.

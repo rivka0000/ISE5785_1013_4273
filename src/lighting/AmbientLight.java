@@ -1,14 +1,11 @@
 package lighting;
 
-import primitives.Color; // נניח שהמחלקה Color נמצאת בחבילה primitives
+import primitives.Color;
 
 /**
  * Represents ambient light in a scene, which is constant and directionless.
  */
-public class AmbientLight {
-
-    // Final field for ambient light intensity (RGB components)
-    private final Color intensity;
+public class AmbientLight extends Light {
 
     /**
      * Constant for no ambient light (black color)
@@ -17,17 +14,10 @@ public class AmbientLight {
 
     /**
      * Constructs ambient light with a given color intensity.
+     * 
      * @param intensity Color representing the ambient light intensity (IA)
      */
     public AmbientLight(Color intensity) {
-        this.intensity = intensity;
-    }
-
-    /**
-     * Returns the intensity of the ambient light.
-     * @return Color representing the intensity
-     */
-    public Color getIntensity() {
-        return intensity;
+        super(intensity);
     }
 }

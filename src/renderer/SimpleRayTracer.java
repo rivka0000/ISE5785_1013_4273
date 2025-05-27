@@ -22,30 +22,33 @@ public class SimpleRayTracer extends RayTracerBase {
     }
 
     /**
-     * Traces a ray through the scene and returns the resulting color at the intersection point.
+     * Traces a given ray through the scene and computes the resulting color at the closest intersection point.
      *
-     * @param ray the ray to trace through the scene
-     * @return the color at the closest intersection point, or the background color if no intersection occurs
+     * @param ray the ray to be traced through the scene
+     * @return the color at the closest intersection point; returns the background color if no intersection is found
      */
     @Override
     public Color traceRay(Ray ray) {
-        // שלב 1: חישוב כל החיתוכים עם הסצנה
+        //  Calculate all intersections of the ray with the geometries in the scene
         List<Intersection> intersections = scene.geometries.calculateIntersections(ray);
 
-        // אם אין בכלל חיתוכים – מחזירים צבע רקע
+        // If no intersections are found, return the background color of the scene
         if (intersections == null || intersections.isEmpty()) {
             return scene.background;
         }
 
-        // שלב 2: איתור החיתוך הקרוב ביותר
+        //  Find the closest intersection point among all intersections
         Intersection closestIntersection = ray.findClosestIntersection(intersections);
+
+        // If no closest intersection is found (should be rare), return the background color
         if (closestIntersection == null) {
             return scene.background;
         }
 
-        // שלב 3: חישוב צבע – כעת רק לפי אור סביבתי
+        // Calculate and return the color at the closest intersection point (currently ambient light only)
         return calcColor(closestIntersection);
     }
+
 
     /**
      * Calculates the color for a given intersection using ambient light only.
@@ -55,6 +58,8 @@ public class SimpleRayTracer extends RayTracerBase {
      */
     private Color calcColor(Intersection intersection) {
         return intersection.geometry.getEmission()
-                .add(scene.ambientLight.getIntensity());
+               .add(scene.ambientLight.getIntensity()
+               .scale(intersection.geometry.getMaterial().Ka));
     }
+
 }

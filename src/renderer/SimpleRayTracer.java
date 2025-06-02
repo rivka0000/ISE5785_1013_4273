@@ -2,64 +2,107 @@ package renderer;
 
 import java.util.List;
 
+import geometries.Intersectable;
 import geometries.Intersectable.Intersection;
-import primitives.Color;
-import primitives.Ray;
+import lighting.LightSource;
+import primitives.*;
 import scene.Scene;
+
+import static primitives.Util.alignZero;
+import static primitives.Util.isZero;
 
 /**
  * A simple implementation of a ray tracer.
  */
 public class SimpleRayTracer extends RayTracerBase {
 
-    /**
-     * Constructs a simple ray tracer for the given scene.
-     *
-     * @param scene the scene to be used by the ray tracer
-     */
     public SimpleRayTracer(Scene scene) {
         super(scene);
     }
 
-    /**
-     * Traces a given ray through the scene and computes the resulting color at the closest intersection point.
-     *
-     * @param ray the ray to be traced through the scene
-     * @return the color at the closest intersection point; returns the background color if no intersection is found
-     */
     @Override
     public Color traceRay(Ray ray) {
-        //  Calculate all intersections of the ray with the geometries in the scene
         List<Intersection> intersections = scene.geometries.calculateIntersections(ray);
-
-        // If no intersections are found, return the background color of the scene
         if (intersections == null || intersections.isEmpty()) {
             return scene.background;
         }
 
-        //  Find the closest intersection point among all intersections
         Intersection closestIntersection = ray.findClosestIntersection(intersections);
+        return closestIntersection == null ? scene.background : calcColor(closestIntersection, ray);
+    }
 
-        // If no closest intersection is found (should be rare), return the background color
-        if (closestIntersection == null) {
-            return scene.background;
+    private Color calcColor(Intersection intersection, Ray ray) {
+        if (!preprocessIntersection(intersection, ray.getDir()))
+            return Color.BLACK;
+
+        Color ambient = scene.ambientLight.getIntensity().scale(intersection.material.Ka);
+        Color emission = intersection.geometry.getEmission();
+        Color localEffects = calcColorLocalEffects(intersection);
+
+        return ambient.add(emission).add(localEffects);
+    }
+
+    private Color calcColorLocalEffects(Intersection intersection) {
+        Color result = Color.BLACK;
+
+        for (LightSource light : scene.lights) {
+            if (!setLightSource(intersection, light))
+                continue;
+
+            // ✅ תוספת לצל: דילוג על אור אם הנקודה בצל
+            if (!isUnshaded(intersection))
+                continue;
+
+            Color iL = light.getIntensity(intersection.point);
+            Double3 diff = calcDiffusive(intersection);
+            Double3 spec = calcSpecular(intersection);
+
+            result = result.add(iL.scale(diff.add(spec)));
         }
 
-        // Calculate and return the color at the closest intersection point (currently ambient light only)
-        return calcColor(closestIntersection);
+        return result;
     }
 
-
-    /**
-     * Calculates the color for a given intersection using ambient light only.
-     *
-     * @param intersection the intersection to calculate color for
-     * @return the calculated color based on ambient light
-     */
-    private Color calcColor(Intersection intersection) {
-        return intersection.geometry.getEmission()
-               .add(scene.ambientLight.getIntensity()
-               .scale(intersection.geometry.getMaterial().Ka));
+    private Double3 calcSpecular(Intersection i) {
+    	Vector r = i.normal.scale(i.lNormal).subtract(i.l).normalize(); // reflection vector
+        double minusVR = -i.v.dotProduct(r);
+        if (minusVR <= 0) return Double3.ZERO;
+        return i.material.KS.scale(Math.pow(minusVR, i.material.nShininess));
     }
 
+    private Double3 calcDiffusive(Intersection i) {
+        return i.material.KD.scale(Math.abs(i.lNormal));
+    }
+
+    private boolean preprocessIntersection(Intersection intersection, Vector v) {
+        intersection.v = v;
+        intersection.normal = intersection.geometry.getNormal(intersection.point);
+        intersection.vNormal = alignZero(intersection.v.dotProduct(intersection.normal));
+        return !isZero(intersection.vNormal);
+    }
+
+    private boolean setLightSource(Intersection intersection, LightSource light) {
+        intersection.light = light;
+        intersection.l = light.getL(intersection.point);
+        intersection.lNormal = alignZero(intersection.l.dotProduct(intersection.normal));
+        return !isZero(intersection.lNormal * intersection.vNormal);
+    }
+
+    // ✅ זוהי המתודה שאחראית לבדוק האם הנקודה בצל
+    private boolean isUnshaded(Intersection intersection) {
+        // יוצרים קרן צל מנקודת החיתוך לכיוון מקור האור (בכיוון ההפוך מ־l)
+        Ray shadowRay = new Ray(intersection.point, intersection.l.scale(-1), intersection.normal);
+
+        List<Intersection> shadowIntersections = scene.geometries.calculateIntersections(shadowRay);
+        if (shadowIntersections == null) return true;
+
+        double lightDistanceSquared = intersection.point.distanceSquared(shadowRay.getPoint(1)); // ערך מקורב
+
+        for (Intersection shadow : shadowIntersections) {
+            if (shadow.point.distanceSquared(intersection.point) < lightDistanceSquared)
+                return false; // יש אובייקט שמסתיר את מקור האור
+        }
+
+        return true; // אין הסתרה – הנקודה מוארת
+    }
 }

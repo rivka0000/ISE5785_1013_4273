@@ -14,6 +14,8 @@ public class Ray {
     
     /** The direction vector of the ray */
     private final Vector direction;
+    
+    private static final double DELTA = 0.1;
 
     /**
      * Constructor to initialize a ray with a given origin and direction.
@@ -30,6 +32,20 @@ public class Ray {
         this.direction = direction.normalize();  // Normalize the direction vector to ensure it has unit length
     }
 
+    /**
+     * Ray constructor with epsilon shift in the direction of the normal
+     * Used for creating shadow rays to avoid self-intersection
+     *
+     * @param head     the starting point of the ray
+     * @param direction the direction of the ray
+     * @param normal    the normal at the point (used to shift the ray origin slightly)
+     */
+    public Ray(Point head, Vector direction, Vector normal) {
+        Vector delta = normal.scale(normal.dotProduct(direction) > 0 ? DELTA : -DELTA);
+        this.head = head.add(delta);
+        this.direction = direction.normalize();
+    }
+    
     /**
      * Gets the origin point of the ray.
      * @return the origin point

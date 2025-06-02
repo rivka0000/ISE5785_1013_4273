@@ -2,7 +2,9 @@ package geometries;
 
 import primitives.Point;
 import primitives.Ray;
-
+import lighting.LightSource;
+import primitives.Material;
+import primitives.Vector;
 import java.util.List;
 import java.util.Objects;
 
@@ -14,37 +16,47 @@ public abstract class Intersectable {
     /**
      * Passive data structure representing a point of intersection between a ray and a geometry.
      */
-    public static class Intersection {
-        public final Geometry geometry;
-        public final Point point;
+	public static class Intersection {
+	    public final Geometry geometry;
+	    public final Point point;
+	    public final Material material;
 
-        /**
-         * Constructs an Intersection object with the given geometry and point.
-         * 
-         * @param geometry the intersected geometry
-         * @param point the intersection point
-         */
-        public Intersection(Geometry geometry, Point point) {
-            this.geometry = geometry;
-            this.point = point;
-        }
+	    // נתונים לחישובי מודל פונג (יאוכלסו ע"י SimpleRayTracer)
+	    public Vector v;         // כיוון הקרן
+	    public Vector normal;    // הנורמל לפני הגוף
+	    public double vNormal;   // v · n
 
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) return true;
-            if (obj == null || getClass() != obj.getClass()) return false;
-            Intersection other = (Intersection) obj;
-            return geometry == other.geometry && Objects.equals(point, other.point);
-        }
+	    public LightSource light; // מקור האור
+	    public Vector l;          // כיוון ממקור האור לנקודת החיתוך
+	    public double lNormal;    // l · n
 
-        @Override
-        public String toString() {
-            return "Intersection{" +
-                   "geometry=" + geometry +
-                   ", point=" + point +
-                   '}';
-        }
-    }
+	    /**
+	     * Constructs an Intersection object with the given geometry and point.
+	     * Also initializes the material from the geometry.
+	     */
+	    public Intersection(Geometry geometry, Point point) {
+	        this.geometry = geometry;
+	        this.point = point;
+	        this.material = geometry == null ? null : geometry.getMaterial();
+	    }
+
+	    @Override
+	    public boolean equals(Object obj) {
+	        if (this == obj) return true;
+	        if (obj == null || getClass() != obj.getClass()) return false;
+	        Intersection other = (Intersection) obj;
+	        return geometry == other.geometry && Objects.equals(point, other.point);
+	    }
+
+	    @Override
+	    public String toString() {
+	        return "Intersection{" +
+	               "geometry=" + geometry +
+	               ", point=" + point +
+	               '}';
+	    }
+	}
+
 
     /**
      * Template method that delegates the actual intersection computation to a subclass.

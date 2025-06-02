@@ -1,6 +1,3 @@
-/**
- * 
- */
 package unittests.renderer;
 
 import static java.awt.Color.BLUE;
@@ -10,8 +7,7 @@ import org.junit.jupiter.api.Test;
 import geometries.*;
 import lighting.*;
 import primitives.*;
-import renderer.Camera;
-import renderer.RayTracerType;
+import renderer.*;
 import scene.Scene;
 
 /**
@@ -183,11 +179,11 @@ class LightsTests {
    void sphereSpotSharp() {
       scene1.geometries.add(sphere);
       scene1.lights
-         .add(new SpotLight(sphereLightColor, sphereLightPosition, new Vector(1, 1, -0.5)) //
-            .setKl(0.001).setKq(0.00004).setNarrowBeam(10));
+         .add(((SpotLight) new SpotLight(sphereLightColor, sphereLightPosition, new Vector(1, 1, -0.5)) //
+            .setKl(0.001).setKq(0.00004)).setNarrowBeam(10));
 
       camera1.setResolution(500, 500) //
-         .build() //
+      .build() //
          .renderImage() //
          .writeToImage("lightSphereSpotSharp");
    }
@@ -196,8 +192,8 @@ class LightsTests {
    @Test
    void trianglesSpotSharp() {
       scene2.geometries.add(triangle1, triangle2);
-      scene2.lights.add(new SpotLight(trianglesLightColor, trianglesLightPosition, trianglesLightDirection) //
-         .setKl(0.001).setKq(0.00004).setNarrowBeam(10));
+      scene2.lights.add(((SpotLight) new SpotLight(trianglesLightColor, trianglesLightPosition, trianglesLightDirection) 
+         .setKl(0.001).setKq(0.00004)).setNarrowBeam(10));
 
       camera2.setResolution(500, 500) //
          .build() //
@@ -206,4 +202,3 @@ class LightsTests {
    }
 
 }
-

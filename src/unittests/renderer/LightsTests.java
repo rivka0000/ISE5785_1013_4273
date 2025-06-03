@@ -201,4 +201,82 @@ class LightsTests {
          .writeToImage("lightTrianglesSpotSharp");
    }
 
+   @Test
+   void sphereMultipleLights() {
+       // Create a scene with a sphere
+       scene1.geometries.add(sphere);
+
+       // Add Ambient Light to the scene
+       scene1.setAmbientLight(new AmbientLight(new Color(50, 50, 50)));  // Ambient light for soft lighting
+
+       // Add three different light sources with varying intensities, directions, and positions
+       scene1.lights.add(new DirectionalLight(new Color(1000, 500, 250), new Vector(1, 1, -0.5)));  // Directional light
+       scene1.lights.add(new PointLight(new Color(600, 400, 300), new Point(50, 50, 50))  // Point light
+           .setKl(0.001).setKq(0.0002));  // Attenuation factors for point light
+       scene1.lights.add(new SpotLight(new Color(700, 500, 100), new Point(-50, -50, 25), new Vector(1, 1, -0.5))  // Spot light
+           .setKl(0.001).setKq(0.00004).setNarrowBeam(8));  // Narrow beam effect for sharper spotlight
+
+       // Set the camera resolution and render the image
+       camera1.setResolution(500, 500) 
+           .build() 
+           .renderImage()  // Render the image with the lights
+           .writeToImage("lightSphereMultiple");  // Save the image
+   }
+
+   @Test
+   void trianglesMultipleLights() {
+       // Create a scene with two triangles
+       scene2.geometries.add(triangle1, triangle2);
+
+       // Add Ambient Light to the scene
+       scene2.setAmbientLight(new AmbientLight(new Color(50, 50, 50)));  // Ambient light for soft lighting
+
+       // Add three different light sources with varying intensities, directions, and positions
+       scene2.lights.add(new DirectionalLight(new Color(1500, 800, 400), new Vector(1, 1, -0.5)));  // Directional light with higher intensity
+       scene2.lights.add(new PointLight(new Color(800, 600, 400), new Point(50, 50, 50))  // Point light with higher intensity
+           .setKl(0.001).setKq(0.0002));  // Attenuation factors for point light
+       scene2.lights.add(new SpotLight(new Color(1000, 600, 200), new Point(-50, -50, 25), new Vector(1, 1, -0.5))  // Spot light with higher intensity
+           .setKl(0.001).setKq(0.00004).setNarrowBeam(8));  // Narrow beam effect for sharper spotlight
+
+       // Set the camera resolution and render the image
+       camera2.setResolution(500, 500) 
+           .build() 
+           .renderImage()  // Render the image with the lights
+           .writeToImage("lightTrianglesMultiple");  // Save the image
+   }
+
+   @Test
+   void trianglesSpotSharpNarrow() {
+       // Create a scene with two triangles
+       scene2.geometries.add(triangle1, triangle2);
+
+       // Add a spot light with a narrow beam for a sharper effect
+       scene2.lights.add(new SpotLight(trianglesLightColor, trianglesLightPosition, trianglesLightDirection)
+           .setKl(0.001).setKq(0.00004).setNarrowBeam(5));  // Narrow beam for sharper spotlight effect
+
+       // Set the camera resolution and render the image
+       camera2.setResolution(500, 500) 
+           .build() 
+           .renderImage()  // Render the image with the narrow spot light
+           .writeToImage("lightTrianglesSpotSharpNarrow");  // Save the image with the narrow beam
+   }
+   
+   @Test
+   void sphereSpotSharpNarrow() {
+       // Create a scene with a sphere
+       scene1.geometries.add(sphere);
+
+       // Add a spot light with a narrow beam for a sharper effect
+       scene1.lights.add(new SpotLight(sphereLightColor, sphereLightPosition, sphereLightDirection)
+           .setKl(0.001).setKq(0.00004).setNarrowBeam(5));  // Narrow beam for sharper spotlight effect
+
+       // Set the camera resolution and render the image
+       camera1.setResolution(500, 500) 
+           .build() 
+           .renderImage()  // Render the image with the narrow spot light
+           .writeToImage("lightSphereSpotSharpNarrow");  // Save the image with the narrow beam
+   }
+
+
+
 }

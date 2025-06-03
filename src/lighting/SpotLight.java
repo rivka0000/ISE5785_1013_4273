@@ -14,7 +14,7 @@ public class SpotLight extends PointLight {
     /** The direction of the light beam. */
     private final Vector direction;
 
-    /** the narrow beam angle (0 to 1) */
+    /** The narrow beam angle (default is 1, meaning no narrow beam effect). */
     private double narrowBeam = 1;
 
     /**
@@ -53,7 +53,7 @@ public class SpotLight extends PointLight {
 
     /**
      * Sets the narrow beam angle for the light source.
-     * @param narrowBeam the narrow beam
+     * @param narrowBeam the narrow beam angle (default is 1)
      * @return the spotlight object itself
      */
     public SpotLight setNarrowBeam(double narrowBeam) {
@@ -86,18 +86,16 @@ public class SpotLight extends PointLight {
         Vector l = getL(p); // direction from light to point
         double dirFactor = direction.dotProduct(l);
         if (dirFactor <= 0) {
-            // the angle between the light direction and the vector from the light source to the point
-            // is 90 degrees or more
+            // The angle between the light direction and the vector from the light source to the point
+            // is 90 degrees or more, meaning no light reaches the point
             return Color.BLACK;
         }
 
-        // reach here only if dirFactor > 0
+        // Apply the narrow beam by raising the direction factor to the power of narrowBeam
         double dirFactorWithNarrowBeam = Math.pow(dirFactor, narrowBeam);
-        //double dirFactorWithNarrowBeam = dirFactor * narrowBeam;
 
-        // get the intensity from the parent class to be used as part of the calculation for the final intensity
+        // Get the intensity from the parent class and scale it according to the narrow beam
         Color pointIntensity = super.getIntensity(p);
-
         return pointIntensity.scale(dirFactorWithNarrowBeam);
     }
 }

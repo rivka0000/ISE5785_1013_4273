@@ -9,6 +9,8 @@ import lighting.AmbientLight;
 import primitives.*;
 import renderer.*;
 import scene.Scene;
+import lighting.SpotLight;
+
 
 /**
  * Test rendering a basic image
@@ -137,5 +139,59 @@ public class RenderTests {
          .printGrid(new Color(WHITE), 100)
          .writeToImage("color render test material");
    }
+   
+   @Test
+   public void renderSphereWithVisibleSpotLight() {
+       Scene scene = new Scene("Sphere lit from right front")
+           .setAmbientLight(new AmbientLight(new Color(20, 20, 20))); 
+
+       scene.geometries.add(
+           new Sphere(new Point(0, 0, -100), 50)
+               .setEmission(new Color(30, 30, 30)) 
+               .setMaterial(new Material()
+                   .setKD(0.6)     
+                   .setKS(0.9)     
+                   .setShininess(300)) 
+       );
+
+       
+       
+       scene.lights.add(
+    		    new SpotLight(
+    		        new Color(0, 255, 0),       // צבע האור הימני
+    		        new Point(100, 0, 0),            // מיקום האור הימני
+    		        new Vector(-1, 0, -2))            // כיוון האור הימני אל הכדור
+    		        .setNarrowBeam(15)
+    		        .setKl(0.0005)
+    		        .setKq(0.00005)
+    		);
+
+    		scene.lights.add(
+    		    new SpotLight(
+    		        new Color(255, 0, 0),       // צבע האור הקדמי
+    		        new Point(0, 0,0),              // מיקום האור - בול מקדימה של הכדור
+    		        new Vector(0,0,-2 )    )       // כיוון האור - ישר אל מרכז הכדור
+    		       // .setNarrowBeam(15)                // צר, כמו האור הימני
+    		        .setKl(0.0005)
+    		        .setKq(0.00005)
+    		);
+
+
+
+       
+       
+
+
+       camera
+           .setRayTracer(scene, RayTracerType.SIMPLE)
+           .setResolution(1000, 1000)
+           .build()
+           .renderImage()
+           .printGrid(new Color(WHITE), 100)
+           .writeToImage("sphere_with_strong_spotlight2");
+   } 
+
+
+
 
 }

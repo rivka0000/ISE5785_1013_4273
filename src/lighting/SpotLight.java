@@ -84,7 +84,8 @@ public class SpotLight extends PointLight {
     @Override
     public Color getIntensity(Point p) {
         Vector l = getL(p); // direction from light to point
-        double dirFactor = direction.dotProduct(l);
+        double dirFactor = (direction.dotProduct(l));
+        
         if (dirFactor <= 0) {
             // The angle between the light direction and the vector from the light source to the point
             // is 90 degrees or more, meaning no light reaches the point

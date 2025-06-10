@@ -18,6 +18,8 @@ public class Material {
     // Shininess factor (n)
     public int nShininess = 0;
 
+	
+
     /**
      * Default constructor for Material.
      */

@@ -277,6 +277,6 @@ class LightsTests {
            .writeToImage("lightSphereSpotSharpNarrow");  // Save the image with the narrow beam
    }
 
-
+   
 
 }

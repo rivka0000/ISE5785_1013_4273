@@ -61,15 +61,12 @@ public class SimpleRayTracer extends RayTracerBase {
      * @return the resulting color
      */
     private Color calcColor(Intersection intersection, Ray ray) {
-    	
-
         // Preliminary check to ensure intersection and ray direction are valid
         if (!preprocessIntersection(intersection, ray.getDir()))
             return Color.BLACK;
 
         // Recursive calculation of color using max recursion level and initial attenuation
-        Color localAndRecursiveColor = calcColor(intersection, ray, MAX_CALC_COLOR_LEVEL, INITIAL_K);
-
+        Color localAndRecursiveColor = calcColor(intersection, MAX_CALC_COLOR_LEVEL, INITIAL_K);
 
         // Calculate ambient color scaled by material ambient coefficient
         Color ambient = scene.ambientLight.getIntensity().scale(intersection.material.Ka);
@@ -93,18 +90,21 @@ public class SimpleRayTracer extends RayTracerBase {
      * @param k the accumulated attenuation factor (of type Double3)
      * @return the color calculated based on local effects only
      */
-    private Color calcColor(Intersection intersection, Ray ray, int level, Double3 k) {
-    	preprocessIntersection(intersection, ray.getDir());
-
-    	if (level <= 0 || k.lowerThan(MIN_CALC_COLOR_K)) {
-            return Color.BLACK;
+    private Color calcColor(Intersection intersection, int level, Double3 k) {
+        // Stop recursion if max depth reached or attenuation factor too low
+        if (level <= 0 || k.lowerThan(MIN_CALC_COLOR_K)) {
+            return Color.BLACK; // No contribution from this ray
         }
-    	
 
+        // Calculate only local lighting effects (diffuse, specular, ambient)
         Color localEffects = calcColorLocalEffects(intersection);
-        Color globalEffects = calcGlobalEffects(intersection, ray, level - 1, k);
+        
+     // Calculate global effects (reflection and refraction) recursively
+        // The incoming ray direction is stored in intersection.v
+        //Color globalEffects = calcGlobalEffects(intersection, new Ray(intersection.point, intersection.v), level, k);
 
-        return localEffects.add(globalEffects);
+        // Return local effects without reflection/refraction contribution yet
+        return localEffects;
     }
 
 
@@ -325,39 +325,27 @@ public class SimpleRayTracer extends RayTracerBase {
 
     
     /**
-     * Calculates the global lighting effect (reflection or refraction) resulting from a secondary ray.
-     * This method is called recursively to compute the color contribution of a ray that was generated
-     * from a reflective or transparent surface.
-     *
-     * @param secondaryRay the secondary ray (reflected or refracted) to trace
-     * @param level        the current recursion depth; used to limit the depth of recursive tracing
-     * @param k            the accumulated attenuation factor from previous recursive levels
-     * @param kEffect      the attenuation coefficient for this specific effect (reflection or transparency)
-     * @return the color contribution from the secondary ray, or black if no contribution is significant
+     * Calculates the global effect color (reflection or transparency) for a secondary ray.
+     * 
+     * @param secondaryRay the reflection or refraction ray to trace
+     * @param level        the current recursion depth
+     * @param k            the accumulated attenuation factor
+     * @param kEffect      the attenuation coefficient for this effect
+     * @return the color contribution from the global effect (reflection or transparency)
      */
     private Color calcGlobalEffect(Ray secondaryRay, int level, Double3 k, Double3 kEffect) {
-
-    	// Stop recursion if max depth reached or contribution is too small
         if (level <= 0 || k.lowerThan(MIN_CALC_COLOR_K)) {
             return Color.BLACK;
         }
 
-        // Find the closest intersection of the secondary ray
         Intersection intersection = findClosestIntersection(secondaryRay);
         if (intersection == null) {
-            return Color.BLACK; // No geometry hit by the secondary ray
+            return Color.BLACK;
         }
 
-        // Initialize intersection data (direction vector, normal, etc.)
-        preprocessIntersection(intersection, secondaryRay.getDir());
-
-        // Update the attenuation factor by multiplying with the current effect coefficient
         Double3 newK = k.product(kEffect);
-
-        // Recursively compute the color at the new intersection point
-        return calcColor(intersection, secondaryRay, level - 1, newK);
+        return calcColor(intersection, level - 1, newK);
     }
-
     
     /**
      * Calculates the combined global effects of reflection and transparency.
@@ -369,9 +357,7 @@ public class SimpleRayTracer extends RayTracerBase {
      * @return the combined color from reflection and transparency
      */
     private Color calcGlobalEffects(Intersection intersection, Ray ray, int level, Double3 k) {
-    	System.out.println("📣 calcGlobalEffects called - kR=" + intersection.material.kR + ", kT=" + intersection.material.kT);
-
-    	Color reflectionColor = Color.BLACK;
+        Color reflectionColor = Color.BLACK;
         Color refractionColor = Color.BLACK;
 
         // Reflection effect
@@ -388,7 +374,5 @@ public class SimpleRayTracer extends RayTracerBase {
 
         return reflectionColor.add(refractionColor);
     }
-
-
-
 }
+

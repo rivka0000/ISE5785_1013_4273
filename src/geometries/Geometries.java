@@ -37,18 +37,30 @@ public class Geometries extends Intersectable {
     }
 
     /**
-     * Implementation of the abstract method from Intersectable.
-     * Returns all intersections between the given ray and the geometries in the collection.
+     * Finds all intersections between the given ray and the geometries in the collection.
      *
-     * @param ray the ray to intersect with the geometries
+     * @param ray the ray to test
      * @return list of intersections, or null if none
      */
     @Override
     protected List<Intersection> calculateIntersectionsHelper(Ray ray) {
+        return calculateIntersectionsHelper(ray, Double.POSITIVE_INFINITY);
+    }
+
+    /**
+     * Finds all intersections between the given ray and the geometries in the collection,
+     * considering only intersections closer than the specified max distance.
+     *
+     * @param ray         the ray to test
+     * @param maxDistance the maximum distance from ray origin
+     * @return list of intersections, or null if none
+     */
+    @Override
+    protected List<Intersection> calculateIntersectionsHelper(Ray ray, double maxDistance) {
         List<Intersection> result = null;
 
         for (Intersectable geometry : geometries) {
-            List<Intersection> itemIntersections = geometry.calculateIntersections(ray);
+            List<Intersection> itemIntersections = geometry.calculateIntersections(ray, maxDistance);
             if (itemIntersections != null) {
                 if (result == null) {
                     result = new LinkedList<>();

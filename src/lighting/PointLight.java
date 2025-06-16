@@ -18,6 +18,12 @@ public class PointLight extends Light implements LightSource {
 	    private Double3 kL = Double3.ZERO;     // linear attenuation
 	    private Double3 kQ = Double3.ZERO;     // quadratic attenuation
 
+
+	    @Override
+	    public double getDistance(Point point) {
+	        return position.distance(point);
+	    }
+
 	    public PointLight(Color intensity, Point position) {
 	        super(intensity);
 	        this.position = position;

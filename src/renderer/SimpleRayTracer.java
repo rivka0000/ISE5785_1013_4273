@@ -12,24 +12,27 @@ import static primitives.Util.alignZero;
 import static primitives.Util.isZero;
 
 /**
- * A simple implementation of a ray tracer.
+ * A simple implementation of a ray tracer that includes basic lighting and shadow handling.
  */
 public class SimpleRayTracer extends RayTracerBase {
 
+    // A small delta used to offset rays slightly to avoid self-intersection (shadow acne)
+    private static final double DELTA = 0.1;
+
     /**
-     * Constructs a SimpleRayTracer for the given scene.
-     * 
-     * @param scene the scene to be rendered by this ray tracer
+     * Constructor
+     *
+     * @param scene the scene to render
      */
     public SimpleRayTracer(Scene scene) {
         super(scene);
     }
 
     /**
-     * Traces a ray into the scene and returns the color of the closest intersection.
-     * 
+     * Traces a single ray and returns the calculated color based on intersections in the scene.
+     *
      * @param ray the ray to trace
-     * @return the color computed by tracing the ray; background color if no intersection
+     * @return the computed color
      */
     @Override
     public Color traceRay(Ray ray) {
@@ -43,11 +46,12 @@ public class SimpleRayTracer extends RayTracerBase {
     }
 
     /**
-     * Calculates the color at the intersection point including ambient, emission, and local lighting effects.
-     * 
-     * @param intersection the intersection to calculate the color for
-     * @param ray the ray that caused the intersection
-     * @return the resulting color at the intersection point
+     * Computes the full color at a point of intersection,
+     * including ambient light, emission, and local lighting effects.
+     *
+     * @param intersection the intersection to shade
+     * @param ray          the ray that caused the intersection
+     * @return the resulting color
      */
     private Color calcColor(Intersection intersection, Ray ray) {
         if (!preprocessIntersection(intersection, ray.getDir()))
@@ -61,10 +65,10 @@ public class SimpleRayTracer extends RayTracerBase {
     }
 
     /**
-     * Calculates the local lighting effects (diffuse and specular) at the intersection from all light sources.
-     * 
-     * @param intersection the intersection to calculate lighting for
-     * @return the color resulting from local lighting effects
+     * Calculates the local diffuse and specular effects for all light sources at the intersection.
+     *
+     * @param intersection the point to shade
+     * @return the color from local lighting effects
      */
     private Color calcColorLocalEffects(Intersection intersection) {
         Color result = Color.BLACK;
@@ -73,8 +77,8 @@ public class SimpleRayTracer extends RayTracerBase {
             if (!setLightSource(intersection, light))
                 continue;
 
-            // Skip this light if the point is in shadow
-            if (!isUnshaded(intersection))
+            // Shadow check: skip light if point is in shadow
+            if (!unshaded(intersection))
                 continue;
 
             Color iL = light.getIntensity(intersection.point);
@@ -88,42 +92,38 @@ public class SimpleRayTracer extends RayTracerBase {
     }
 
     /**
-     * Calculates the specular component of lighting at the intersection point.
-     * 
-     * @param i the intersection containing relevant data
-     * @return the specular color contribution as a Double3 vector
-     */
-    private Double3 calcSpecular(Intersection i) {
-
-        // Compute reflection vector r = l - 2(n ⋅ l) * n (normalized)
-        Vector r = (i.l.subtract(i.normal.scale(2 * i.lNormal))).normalize();
-
-        double minusVR = -(i.v.dotProduct(r)); // use -v·r because v points outward
-        if (Util.alignZero(minusVR) <= 0) {
-            return Double3.ZERO;
-        }
-
-        // Return scaled specular intensity based on material shininess
-        return i.material.KS.scale(Math.pow(minusVR, i.material.nShininess));
-    }
-
-    /**
-     * Calculates the diffuse component of lighting at the intersection point.
-     * 
-     * @param i the intersection containing relevant data
-     * @return the diffuse color contribution as a Double3 vector
+     * Calculates the diffuse component of lighting.
+     *
+     * @param i the intersection data
+     * @return diffuse color contribution
      */
     private Double3 calcDiffusive(Intersection i) {
         return i.material.KD.scale(Math.abs(i.lNormal));
     }
 
     /**
-     * Prepares intersection data for shading calculation.
-     * Computes the normal vector and the dot product of view direction and normal.
-     * 
-     * @param intersection the intersection to preprocess
-     * @param v the direction vector from the camera/viewer to the intersection point
-     * @return true if the dot product of v and normal is not zero; false otherwise
+     * Calculates the specular component of lighting using the Phong model.
+     *
+     * @param i the intersection data
+     * @return specular color contribution
+     */
+    private Double3 calcSpecular(Intersection i) {
+        Vector r = (i.l.subtract(i.normal.scale(2 * i.lNormal))).normalize();
+        double minusVR = -(i.v.dotProduct(r));
+
+        if (alignZero(minusVR) <= 0) {
+            return Double3.ZERO;
+        }
+
+        return i.material.KS.scale(Math.pow(minusVR, i.material.nShininess));
+    }
+
+    /**
+     * Initializes fields in the intersection object: normal and v · n.
+     *
+     * @param intersection the intersection to initialize
+     * @param v            the direction vector of the incoming ray
+     * @return true if valid for shading, false if v · n is zero
      */
     private boolean preprocessIntersection(Intersection intersection, Vector v) {
         intersection.v = v;
@@ -133,12 +133,11 @@ public class SimpleRayTracer extends RayTracerBase {
     }
 
     /**
-     * Sets the light source related fields in the intersection and calculates
-     * the dot product between light direction and normal, and between view direction and normal.
-     * 
+     * Sets the light-related vectors and computes dot products for lighting calculations.
+     *
      * @param intersection the intersection to update
-     * @param light the light source being considered
-     * @return true if the light direction and view direction are on the same side of the surface; false otherwise
+     * @param light        the current light source
+     * @return true if light and view are on the same side of the surface
      */
     private boolean setLightSource(Intersection intersection, LightSource light) {
         intersection.light = light;
@@ -148,35 +147,19 @@ public class SimpleRayTracer extends RayTracerBase {
     }
 
     /**
-     * Checks if the given intersection point is unshaded (i.e., not in shadow).
-     * 
-     * @param intersection The intersection point to check for shadows.
-     * @return true if the point is not shadowed and receives direct light; false if it's in shadow.
+     * Checks whether a given point is directly lit by a light source or is shadowed.
+     * Uses a shadow ray and considers only intersections up to the light source distance.
+     *
+     * @param intersection the point to check
+     * @return true if the point is not in shadow
      */
-    private boolean isUnshaded(Intersection intersection) {
-        // Create a shadow ray from the intersection point towards the light source (opposite direction of 'l')
+    private boolean unshaded(Intersection intersection) {
+        // Build a shadow ray from the point toward the light
         Ray shadowRay = new Ray(intersection.point, intersection.l.scale(-1), intersection.normal);
+        double maxDistance = intersection.light.getDistance(intersection.point);
 
-        // Calculate intersections of the shadow ray with scene geometries
-        List<Intersection> shadowIntersections = scene.geometries.calculateIntersections(shadowRay);
-        if (shadowIntersections == null) return true; // No intersections means no occlusion
-
-        // Approximate squared distance to the light source from the intersection point
-        double lightDistanceSquared = intersection.point.distanceSquared(shadowRay.getPoint(1));
-
-        // Check if any geometry blocks the light (closer than the light source)
-        for (Intersection shadow : shadowIntersections) {
-            if (shadow.point.distanceSquared(intersection.point) < lightDistanceSquared)
-                return false; // There is an object blocking the light
-        }
-
-        return true; // No occlusion found, point is illuminated
+        // Intersect the shadow ray with scene geometries up to the light source
+        List<Intersection> shadowIntersections = scene.geometries.calculateIntersections(shadowRay, maxDistance);
+        return shadowIntersections == null || shadowIntersections.isEmpty();
     }
-
 }
-
-
-
-
-
-

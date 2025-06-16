@@ -8,43 +8,57 @@ import primitives.Vector;
 import java.util.List;
 
 /**
- * Represents a triangle, which is a specific type of polygon.
- * A triangle is defined by three points and inherits from the {@link Polygon} class.
+ * Represents a triangle defined by three vertices.
+ * Inherits from {@link Polygon}, but provides optimized intersection logic.
  */
 public class Triangle extends Polygon {
- 
+
     /**
-     * Constructs a triangle with the given three vertices.
+     * Constructs a triangle from three vertices.
      *
-     * @param p1 the first vertex of the triangle
-     * @param p2 the second vertex of the triangle
-     * @param p3 the third vertex of the triangle
+     * @param p1 first vertex
+     * @param p2 second vertex
+     * @param p3 third vertex
      */
     public Triangle(Point p1, Point p2, Point p3) {
         super(p1, p2, p3);
-    }  
+    }
 
-    /** 
-     * Finds the intersection points between the triangle and the given ray.
-     * Delegates the intersection logic to the {@link Polygon} implementation, or
-     * implements specific triangle intersection logic if needed.
+    /**
+     * Computes ray-triangle intersection using plane and inside-triangle check.
      *
-     * @param ray the ray to test for intersection with the triangle
-     * @return a list of intersection points, or {@code null} if there are no intersections
+     * @param ray the ray to intersect
+     * @return list containing a single intersection, or null if none
      */
-   
-    
     @Override
     protected List<Intersection> calculateIntersectionsHelper(Ray ray) {
-        List<Point> points = super.plane.findIntersections(ray); // חיתוך עם המישור בלבד
-        if (points == null) return null;
+        return calculateIntersectionsHelper(ray, Double.POSITIVE_INFINITY);
+    }
 
-        Point p = points.get(0);
+    /**
+     * Computes ray-triangle intersection using plane and inside-triangle check,
+     * and only returns the intersection if it is closer than maxDistance.
+     *
+     * @param ray         the ray to intersect
+     * @param maxDistance maximum allowed distance from ray origin
+     * @return list containing the intersection if within range, or null
+     */
+    @Override
+    protected List<Intersection> calculateIntersectionsHelper(Ray ray, double maxDistance) {
+        // First find intersection with the plane
+        List<Point> planePoints = super.plane.findIntersections(ray);
+        if (planePoints == null) return null;
+
+        Point p = planePoints.get(0);
+
+        // Check if point is within max distance
+        if (ray.getP0().distance(p) > maxDistance) return null;
+
         Point v1 = vertices.get(0);
         Point v2 = vertices.get(1);
         Point v3 = vertices.get(2);
 
-        Vector n = plane.getNormal(); // הוקטור האנכי למישור
+        Vector n = plane.getNormal();
 
         try {
             Vector v1p = p.subtract(v1);
@@ -63,12 +77,10 @@ public class Triangle extends Polygon {
                 return List.of(new Intersection(this, p));
             }
         } catch (IllegalArgumentException e) {
+            // Degenerate triangle or exact edge hit
             return null;
         }
 
         return null;
     }
-
-
 }
-

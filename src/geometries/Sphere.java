@@ -1,52 +1,66 @@
 package geometries;
+
 import primitives.Point;
-import primitives.*;
+import primitives.Ray;
+import primitives.Util;
+import primitives.Vector;
+import geometries.Intersectable.Intersection;
+import static primitives.Util.alignZero;
 
 import java.util.LinkedList;
 import java.util.List;
 
-
-
 /**
  * Represents a sphere in 3D space, inheriting from the RadialGeometry class.
  * The sphere is defined by its center point and radius.
- */ 
+ */
 public class Sphere extends RadialGeometry {
+
     /** The center point of the sphere */
     private final Point center;
- 
+
     /**
-     * Constructor to initialize a sphere with a given center and radius.
-     * 
-     * @param center1 The center point of the sphere
+     * Constructs a sphere from a center point and a radius.
+     *
+     * @param center The center of the sphere
      * @param radius The radius of the sphere
      */
-    public Sphere(Point center1, double radius) {
-        super(radius);  // Initialize the radius from the parent class
-        this.center = center1;  // Set the center point of the sphere
+    public Sphere(Point center, double radius) {
+        super(radius);
+        this.center = center;
     }
 
     /**
-     * Gets the normal vector of the sphere at a specific point.
-     * Currently returns null as the method is not yet implemented.
-     * 
-     * @param point1 The point on the sphere where the normal is needed
-     * @return The normal vector at the given point (currently returns null)
-     */
-    public Vector getNormal(Point point) {
-    	return point.subtract(center).normalize();
-    }
-    
-    /**
-     * Finds the intersection points between the triangle and the given ray.
-     * Delegates the intersection logic to the {@link Polygon} implementation, or
-     * implements specific triangle intersection logic if needed.
+     * Gets the normal vector to the surface of the sphere at a given point.
      *
-     * @param ray the ray to test for intersection with the triangle
-     * @return a list of intersection points, or {@code null} if there are no intersections
+     * @param point The point on the surface
+     * @return Normalized normal vector
+     */
+    @Override
+    public Vector getNormal(Point point) {
+        return point.subtract(center).normalize();
+    }
+
+    /**
+     * Computes intersections of a ray with the sphere (no distance limit).
+     *
+     * @param ray the ray to intersect
+     * @return list of intersection points or null
      */
     @Override
     protected List<Intersection> calculateIntersectionsHelper(Ray ray) {
+        return calculateIntersectionsHelper(ray, Double.POSITIVE_INFINITY);
+    }
+
+    /**
+     * Computes intersections of a ray with the sphere, up to a maximum distance.
+     *
+     * @param ray         the ray to intersect
+     * @param maxDistance the maximum allowed distance
+     * @return list of intersections or null
+     */
+    @Override
+    protected List<Intersection> calculateIntersectionsHelper(Ray ray, double maxDistance) {
         Point p0 = ray.getP0();
         Vector dir = ray.getDir();
 
@@ -54,7 +68,8 @@ public class Sphere extends RadialGeometry {
         try {
             u = center.subtract(p0);
         } catch (IllegalArgumentException e) {
-            // Ray starts exactly at the sphere's center
+            // Ray starts at the center
+            if (radius > maxDistance) return null;
             return List.of(new Intersection(this, ray.getPoint(radius)));
         }
 
@@ -62,17 +77,17 @@ public class Sphere extends RadialGeometry {
         double dSquared = u.lengthSquared() - tm * tm;
         double rSquared = radius * radius;
 
-        if (Util.alignZero(dSquared - rSquared) >= 0) {
-            return null;
-        }
+        if (alignZero(dSquared - rSquared) >= 0) return null;
 
         double th = Math.sqrt(rSquared - dSquared);
-        double t1 = Util.alignZero(tm - th);
-        double t2 = Util.alignZero(tm + th);
+        double t1 = alignZero(tm - th);
+        double t2 = alignZero(tm + th);
 
         List<Intersection> result = new LinkedList<>();
-        if (t1 > 0) result.add(new Intersection(this, ray.getPoint(t1)));
-        if (t2 > 0) result.add(new Intersection(this, ray.getPoint(t2)));
+        if (t1 > 0 && t1 <= maxDistance)
+            result.add(new Intersection(this, ray.getPoint(t1)));
+        if (t2 > 0 && t2 <= maxDistance)
+            result.add(new Intersection(this, ray.getPoint(t2)));
 
         return result.isEmpty() ? null : result;
     }

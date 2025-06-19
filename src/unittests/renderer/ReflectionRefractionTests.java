@@ -7,8 +7,7 @@ import org.junit.jupiter.api.Test;
 import geometries.*;
 import lighting.*;
 import primitives.*;
-import renderer.Camera;
-import renderer.RayTracerType;
+import renderer.*;
 import scene.Scene;
 
 /**
@@ -48,7 +47,6 @@ class ReflectionRefractionTests {
          .renderImage() //
          .writeToImage("refractionTwoSpheres");
    }
-
    /** Produce a picture of a sphere lighted by a spot light */
    @Test
    void twoSpheresOnMirrors() {
@@ -79,7 +77,7 @@ class ReflectionRefractionTests {
          .renderImage() //
          .writeToImage("reflectionTwoSpheresMirrored");
    }
-
+   
    /**
     * Produce a picture of a two triangles lighted by a spot light with a
     * partially
@@ -110,4 +108,3 @@ class ReflectionRefractionTests {
          .writeToImage("refractionShadow");
    }
 }
-

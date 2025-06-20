@@ -46,12 +46,7 @@ public class Ray {
         this.direction = direction.normalize();
     }
     
-    public Ray(Point p0, Vector dir, Vector normal, double nv) {
-        dir = dir.normalize();
-        Vector delta = normal.scale(nv > 0 ? DELTA : -DELTA);
-        this.head = p0.add(delta);
-        this.direction = dir;
-    }
+   
 
 
     

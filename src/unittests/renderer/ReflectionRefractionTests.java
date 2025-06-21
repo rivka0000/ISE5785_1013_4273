@@ -108,46 +108,48 @@ class ReflectionRefractionTests {
          .writeToImage("refractionShadow");
    }
    
-   /**
-    * Final refined rendering test for submission.
-    * This version combines all visual effects in a clean, aesthetic, and professional way.
-    * Includes: transparency, reflection, partial shadow, multiple light sources, and well-spaced geometries.
-    */
    @Test
-   void finalProfessionalScene() {
-       Scene scene = new Scene("Professional Combined Effects Scene");
+   void beautifulFinalSceneWithAllEffects() {
+       Scene scene = new Scene("Beautiful Final Scene With All Effects");
 
-       // Transparent cyan rectangle in the front (no overlap with other objects)
+       // 1. Transparent cyan rectangle (polygon instead of sphere to avoid trapped rays)
        scene.geometries.add(
            new Polygon(
                new Point(-80, -40, -120), new Point(80, -40, -120),
                new Point(80, 40, -120), new Point(-80, 40, -120))
-               .setEmission(new Color(0, 255, 255))
-               .setMaterial(new Material().setKt(0.6).setKD(0.1).setKS(0.3).setShininess(100))
+               .setEmission(new Color(0, 255, 255)) // Cyan
+               .setMaterial(new Material()
+                   .setKt(0.6)  // transparency only
+                   .setKD(0.1).setKS(0.3).setShininess(100))
        );
 
-       // Orange sphere offset slightly backwards and down
+       // 2. Orange sphere (only reflective, not transparent)
        scene.geometries.add(
            new Sphere(new Point(0, -20, -170), 35)
-               .setEmission(new Color(255, 140, 0))
-               .setMaterial(new Material().setKD(0.5).setKS(0.5).setShininess(120))
+               .setEmission(new Color(255, 140, 0)) // Orange
+               .setMaterial(new Material()
+                   .setKD(0.5).setKS(0.5).setShininess(120))
        );
 
-       // Reflective triangle mirror angled on the side
+       // 3. Reflective triangle
        scene.geometries.add(
            new Triangle(
-               new Point(60, -60, -180), new Point(160, 80, -250), new Point(60, 100, -180))
-               .setEmission(new Color(50, 50, 50))
-               .setMaterial(new Material().setKr(1.0))
+               new Point(60, -60, -180),
+               new Point(160, 80, -250),
+               new Point(60, 100, -180))
+               .setEmission(new Color(50, 50, 50)) // dark gray
+               .setMaterial(new Material().setKr(1.0)) // full reflection
        );
 
-       // Reflective green floor under everything
+       // 4. Reflective green floor (partial reflection)
        scene.geometries.add(
            new Polygon(
                new Point(-150, -80, -250), new Point(150, -80, -250),
                new Point(150, -75, -250), new Point(-150, -75, -250))
-               .setEmission(new Color(0, 100, 0))
-               .setMaterial(new Material().setKr(new Double3(0.3)).setKD(0.3).setKS(0.3).setShininess(50))
+               .setEmission(new Color(0, 100, 0)) // dark green
+               .setMaterial(new Material()
+                   .setKr(new Double3(0.3))
+                   .setKD(0.3).setKS(0.3).setShininess(50))
        );
 
        // Ambient light
@@ -155,25 +157,29 @@ class ReflectionRefractionTests {
 
        // Main spot light from top right
        scene.lights.add(
-           new SpotLight(new Color(1000, 600, 600), new Point(150, 150, 150), new Vector(-1.5, -1.5, -2))
+           new SpotLight(new Color(1000, 600, 600),
+               new Point(150, 150, 150),
+               new Vector(-1.5, -1.5, -2))
                .setKl(4E-5).setKq(2E-7)
        );
 
-       // Additional point light from below left
+       // Point light from lower left
        scene.lights.add(
-           new PointLight(new Color(250, 150, 250), new Point(-100, -100, 150))
+           new PointLight(new Color(250, 150, 250),
+               new Point(-100, -100, 150))
                .setKl(1E-5).setKq(1E-6)
        );
 
        // Directional light for soft balance
        scene.lights.add(
-           new DirectionalLight(new Color(100, 100, 150), new Vector(1, -0.3, -1))
+           new DirectionalLight(new Color(100, 100, 150),
+               new Vector(1, -0.3, -1))
        );
-
-       // Camera setup
+       
+    // Camera
        Camera camera = Camera.getBuilder()
            .setLocation(new Point(0, 0, 600))
-           .setDirection(new Vector(0, 0, -1))
+           .setDirection(new Vector(0, 0, -1).normalize()) // vTo - normalized
            .setVpSize(250, 250)
            .setVpDistance(600)
            .setResolution(800, 800)
@@ -181,7 +187,8 @@ class ReflectionRefractionTests {
            .build();
 
        camera.renderImage();
-       camera.writeToImage("finalProfessionalScene");
+       camera.writeToImage("beautifulFinalSceneWithAllEffects");
+
    }
 
 

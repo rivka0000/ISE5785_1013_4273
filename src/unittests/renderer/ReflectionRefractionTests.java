@@ -191,5 +191,145 @@ class ReflectionRefractionTests {
 
    }
 
+   @Test
+   void PRO7_10_Geometries()
+   {
+
+       // Creating the scene with a dramatic background - EXACTLY like fourGeometriesWithEffects
+       Scene scene = new Scene("Colorful Spheres and Pyramids")
+               .setBackground(new Color(20, 30, 50))
+               .setAmbientLight(new AmbientLight(new Color(15, 15, 20)));
+
+       // Reflective floor - SAME style as the working test
+       Geometry floor = new Plane(new Point(0, -2.5, 0), new Vector(0, 1, 0))
+               .setEmission(new Color(30, 30, 35))
+               .setMaterial(new Material()
+                       .setKD(0.2)
+                       .setKS(0.8)
+                       .setKr(0.7)
+                       .setShininess(100));
+
+       // Red sphere - moved further left and back
+       Geometry redSphere = new Sphere(new Point(-2.2, 0, -2.8), 1.2)
+               .setEmission(new Color(120, 30, 30))
+               .setMaterial(new Material()
+                       .setKD(0.7)
+                       .setKS(0.3)
+                       .setShininess(50));
+
+       // Pink sphere (left)
+       Geometry pinkSphere = new Sphere(new Point(-3, -0.5, 1), 0.8)
+               .setEmission(new Color(140, 60, 100))
+               .setMaterial(new Material()
+                       .setKD(0.7)
+                       .setKS(0.3)
+                       .setShininess(50));
+
+       // Green sphere (center) - moved more to center-left
+       Geometry greenSphere = new Sphere(new Point(-1.2, -0.2, -0.2), 1.3)
+               .setEmission(new Color(30, 100, 40))
+               .setMaterial(new Material()
+                       .setKD(0.7)
+                       .setKS(0.3)
+                       .setShininess(50));
+
+       // Blue sphere (center-right) - moved more to the right
+       Geometry blueSphere = new Sphere(new Point(1.8, -0.5, 0.2), 1.0)
+               .setEmission(new Color(30, 60, 140))
+               .setMaterial(new Material()
+                       .setKD(0.7)
+                       .setKS(0.3)
+                       .setShininess(50));
+
+       // Purple sphere (right front)
+       Geometry purpleSphere = new Sphere(new Point(2.5, -0.3, -1), 0.9)
+               .setEmission(new Color(80, 30, 120))
+               .setMaterial(new Material()
+                       .setKD(0.7)
+                       .setKS(0.3)
+                       .setShininess(50));
+
+       // Purple sphere in the back - moved further back and more centered
+       Geometry backPurpleSphere = new Sphere(new Point(-0.2, 0.5, -4.2), 0.7)
+               .setEmission(new Color(100, 40, 140))
+               .setMaterial(new Material()
+                       .setKD(0.7)
+                       .setKS(0.3)
+                       .setShininess(50));
+
+       // NEW: Orange sphere (10th object) - moved to upper right, clear space
+       Geometry orangeSphere = new Sphere(new Point(3.2, 1.0, 0.8), 0.6)
+               .setEmission(new Color(180, 90, 30))
+               .setMaterial(new Material()
+                       .setKD(0.7)
+                       .setKS(0.3)
+                       .setShininess(50));
+
+       // Pink triangle (left) - moved to a better position
+       Geometry pinkTriangle = new Triangle(
+               new Point(-2.8, 0.5, 2.2),
+               new Point(-2.2, -1.2, 2.2),
+               new Point(-3.4, -1.2, 2.2)
+       )
+               .setEmission(new Color(120, 50, 80))
+               .setMaterial(new Material()
+                       .setKD(0.2)
+                       .setKS(0.6)
+                       .setKR(0.4)
+                       .setShininess(120));
+
+       // Blue triangle (center) - original position
+       Geometry blueTriangle = new Triangle(
+               new Point(1.5, 2, -1.5),
+               new Point(0, -1.5, -1.5),
+               new Point(3, -1.5, -1.5)
+       )
+               .setEmission(new Color(30, 60, 140))
+               .setMaterial(new Material()
+                       .setKD(0.2)
+                       .setKS(0.6)
+                       .setKR(0.4)
+                       .setShininess(120));
+
+       // Yellow triangle (right)
+       Geometry yellowTriangle = new Triangle(
+               new Point(4, 1.5, -1),
+               new Point(3, -1.5, -1),
+               new Point(5, -1.5, -1)
+       )
+               .setEmission(new Color(140, 120, 30))
+               .setMaterial(new Material()
+                       .setKD(0.2)
+                       .setKS(0.6)
+                       .setKr(0.4)
+                       .setShininess(120));
+
+       // REMOVED: Small blue triangle in front (was blocking the view)
+
+       // Adding all bodies to the scene - NOW 10 OBJECTS TOTAL
+       scene.geometries.add(floor, redSphere, pinkSphere, greenSphere, blueSphere, purpleSphere, backPurpleSphere, orangeSphere,
+               pinkTriangle, blueTriangle, yellowTriangle);
+
+       // Balanced lighting - EXACTLY like the working test
+       scene.lights.add(
+               new SpotLight(new Color(400, 350, 300), new Point(2, 4, 1), new Vector(-1, -1, -1))
+                       .setKl(0.0001)
+                       .setKq(0.00001)
+       );
+
+       // Creating a camera with a dramatic angle - SAME style
+       Camera camera = Camera.getBuilder()
+               .setLocation(new Point(-1, 2, 4))
+               .setDirection(new Point(0.5, -0.5, -2), new Vector(0, 1, 0))
+               .setVpDistance(2.5)
+               .setVpSize(5, 5)
+               .setResolution(500, 500)
+               .build()
+               .setRayTracer(scene, new SimpleRayTracer(scene)) 
+               .build();
+
+       camera.renderImage()
+               .writeToImage("PRO7_10_Geometries");
+   }
 
 }

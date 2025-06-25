@@ -1,9 +1,13 @@
 package renderer;
 
 import primitives.*;
+import renderer.BlackBoard.BoardShape;
 import scene.Scene;
 
 import  static primitives.Util.*;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.MissingResourceException;
 
 /**
@@ -34,6 +38,31 @@ public class Camera implements Cloneable {
     
     private ImageWriter imageWriter;
     private RayTracerBase rayTracer;
+    
+    
+    /** The shape of the board for jittered sampling (SQUARE or CIRCLE). */
+    private BoardShape boardShape = BoardShape.SQUARE;
+
+    /** Field that detects whether to use Depth of Field (DOF) effect or not. */
+    private boolean useDOF = false;
+
+    /** Number of rays for Depth of Field (DOF) effect. */
+    private int amountOfRays_DOF = 0;
+
+    /** the radius of the aperture for Depth of Field (DOF) effect. */
+    private double apertureRadius = 0;
+
+    /** the distance from the camera to the focal plane for Depth of Field (DOF) effect. */
+    private double depthOfField = 0;
+
+    /** Field that detects whether to use Anti-Aliasing (AA) effect or not. */
+    private boolean useAA = false;
+
+    /** Number of rays for Anti-Aliasing (AA) effect. */
+    private int amountOfRays_AA = 0;
+    
+    
+    
 
     /**
      * Default constructor for Camera.
@@ -57,7 +86,7 @@ public class Camera implements Cloneable {
      * @param i pixel index along the Y-axis (row)
      * @return a ray from the camera location through the center of the specified pixel
      */
-    public Ray constructRay(int nX, int nY, int j, int i) {
+    public Ray constructRay(int nX,int nY, int j, int i) {
         Point pc = p0.add(vTo.scale(distance));
         double rX = width / nX;
         double rY = height / nY;
@@ -136,27 +165,192 @@ public class Camera implements Cloneable {
     }
     
     /**
-     * Casts a ray from the camera through the given pixel coordinates (x, y).
-     * The method uses the pixel index to calculate the ray's direction and
-     * other necessary parameters. This method is used to simulate the ray-tracing
-     * process and determine the color for the pixel.
-     *
-     * @param x the X-coordinate of the pixel
-     * @param y the Y-coordinate of the pixel
+     * Casts a ray through a specific pixel and writes the resulting color to the image.
+     * @param j the horizontal pixel index
+     * @param i the vertical pixel index
      */
-    private void castRay(int x, int y) {
-        //  Calculate the direction of the ray through the pixel (x, y)
-    	Ray ray = constructRay(nX, nY, x, y);
+    public void castRay(int j, int i) {
+        Color color;
 
+        boolean useAA = amountOfRays_AA > 1;
+        boolean useDOF = amountOfRays_DOF > 1 && apertureRadius != 0;
 
-        //  Perform ray tracing to determine the light intensity for the ray
-        Color pixelColor = rayTracer.traceRay(ray);
+        //if (useAA && useDOF) {
+          //  color = AAandDOFCombinedColor(j, i);
 
-        //  Set the pixel color in the image using the ImageWriter
-        imageWriter.writePixel(x, y, pixelColor);
+       // } else 
+        	if (useAA) {
+            List<Ray> rays = constructAARays(j, i);
+            color = averageRays(rays);
+        } else if (useDOF) {
+            List<Ray> rays = constructDOFRays(j, i);
+            color = averageRays(rays);
+        } else {
+            Ray ray = constructRay(nX , nY,j, i);
+            color = rayTracer.traceRay(ray);
+        }
+
+        imageWriter.writePixel(j, i, color);
+        //pixelManager.pixelDone();
     }
 
 
+    /**
+     * Constructs Depth of Field (DOF) rays for a specific pixel.
+     * This method is used when Depth of Field (DOF) effect is enabled.
+     *
+     * @param j the horizontal pixel index
+     * @param i the vertical pixel index
+     * @return a list of DOF rays
+     */
+    private ArrayList<Ray> constructDOFRays(int j, int i) {
+        Point pixelCenter = calculatePixelCenter(j, i);
+        Vector direction = pixelCenter.subtract(p0).normalize();  
+        return constructDOFRaysFromDirection(direction);
+    }
+
+
+
+
+    /**
+     * Constructs Depth of Field (DOF) rays in a specific direction.
+     * This method is used when Depth of Field (DOF) effect is enabled.
+     *
+     * @param direction the direction vector for the DOF rays
+     * @return a list of DOF rays
+     */
+    private ArrayList<Ray> constructDOFRaysFromDirection(Vector direction) {
+        ArrayList<Ray> DOFRays = new ArrayList<>();
+
+        Point focalPoint = p0.add(direction.scale(depthOfField));  
+
+        List<Point> aperturePoints = BlackBoard.generateJitteredSamples(
+                p0, vRight, vUp, apertureRadius, amountOfRays_DOF, boardShape);  
+
+        for (Point aperturePoint : aperturePoints) {
+            Vector dir = focalPoint.subtract(aperturePoint).normalize();
+            DOFRays.add(new Ray(aperturePoint, dir));
+        }
+
+        return DOFRays;
+    }
+
+
+
+    /**
+     * Constructs Anti-Aliasing (AA) rays for a specific pixel.
+     *
+     * @param j the horizontal pixel index
+     * @param i the vertical pixel index
+     * @return a list of AA rays
+     */
+    private ArrayList<Ray> constructAARays(int j, int i) {
+        ArrayList<Ray> AARays = new ArrayList<>();
+        ArrayList<Vector> AAVectors = getAAVectors(j, i);
+
+        for (Vector AAVector : AAVectors) {
+            AARays.add(new Ray(p0, AAVector));
+        }
+
+        return AARays;
+    }
+
+
+    /**
+     * Generates Anti-Aliasing (AA) vectors for a specific pixel.
+     * These vectors are used to create rays for anti-aliasing effects.
+     *
+     * @param j the horizontal pixel index
+     * @param i the vertical pixel index
+     * @return a list of AA vectors
+     */
+    private ArrayList<Vector> getAAVectors(int j, int i) {
+        ArrayList<Vector> AAVectors = new ArrayList<>();
+
+        Point pij = calculatePixelCenter(j, i);
+        double pixelRadius = (width / nX) / 2.0;  
+
+        List<Point> pixelPoints = BlackBoard.generateJitteredSamples(
+                pij, vRight, vUp, pixelRadius, amountOfRays_AA, boardShape);
+
+        for (Point pixelPoint : pixelPoints) {
+            Vector dir = pixelPoint.subtract(p0).normalize();  
+            AAVectors.add(dir);
+        }
+
+        return AAVectors;
+    }
+
+
+
+    /**
+     * Calculates the center point of a pixel in the view plane.
+     *
+     * @param j the horizontal pixel index
+     * @param i the vertical pixel index
+     * @return the center point of the pixel
+     */
+    private Point calculatePixelCenter(int j, int i) {
+        Point pc = p0.add(vTo.scale(distance));  
+        double rX = width / nX;                  
+        double rY = height / nY;                 
+        double xJ = (j - (nX - 1) / 2.0) * rX;
+        double yI = -(i - (nY - 1) / 2.0) * rY;
+
+        Point pij = pc;
+        if (!Util.isZero(xJ)) pij = pij.add(vRight.scale(xJ));
+        if (!Util.isZero(yI)) pij = pij.add(vUp.scale(yI));
+
+        return pij;
+    }
+
+
+
+    /**
+     * Combines Anti-Aliasing (AA) and Depth of Field (DOF) effects for a specific pixel.
+     * For a given pixel, the algorithm uses getAAVectors to get a list
+     * of the Anti-Aliasing vectors (the directions of the AA rays).
+     * For each of those vectors, it constructs a beam of DOF rays in the vector direction using constructDOFRaysWithDirection,
+     * and calculates the average color of the rays in that beam using averageRays.
+     * Then it calculates the average color of all those average colors,
+     * and returns it as the final color for the pixel.
+     *
+     * @param j the horizontal pixel index
+     * @param i the vertical pixel index
+     * @return the combined color from AA and DOF effects
+     */
+   /* private Color AAandDOFCombinedColor(int j, int i) {
+
+        List<Vector> AAVectors;
+        Color color;
+
+        if (useAdaptiveSuperSamplingForAA) {
+            // the pixelColorForAdaptiveSuperSamplingAA method can handle both regular AA and adaptive super sampling for AA
+            color = pixelColorForAdaptiveSuperSamplingAA(j, i);
+        } else {
+            Color totalColor = Color.BLACK;
+            AAVectors = getAAVectors(j, i);
+
+            for (Vector AAVector : AAVectors) {
+                ArrayList<Ray> DOFrays = constructDOFRaysFromDirection(AAVector);
+                totalColor = totalColor.add(averageRays(DOFrays));
+            }
+            color = totalColor.reduce(AAVectors.size());
+        }
+
+        return color;
+    }*/
+    
+    private Color averageRays(List<Ray> rays) {
+        if (rays.isEmpty()) {
+            return Color.BLACK;
+        }
+        Color total = Color.BLACK;
+        for (Ray ray : rays) {
+            total = total.add(rayTracer.traceRay(ray));
+        }
+        return total.reduce(rays.size());
+    }
 
     /**
      * Creates a shallow clone of the camera.
@@ -329,6 +523,98 @@ public class Camera implements Cloneable {
             camera.nX = nX;
             camera.nY = nY;
 
+            return this;
+        }
+        
+
+
+
+        /**
+         * Sets the shape of the sample area for jittered sampling.
+         * @param boardShape the shape of the sample area (SQUARE or CIRCLE)
+         * @return the builder instance
+         */
+        public Builder setBoardShape(BoardShape boardShape) {
+            if (boardShape == null) {
+                throw new IllegalArgumentException("sampleShape cannot be null");
+            }
+            this.camera.boardShape = boardShape;
+            return this;
+        }
+
+        /**
+         * Sets whether to use Depth of Field (DOF) effect or not.
+         * @param useDOF true to enable DOF, false to disable
+         * @return the builder instance
+         */
+        public Builder setUseDOF(boolean useDOF) {
+            this.camera.useDOF = useDOF;
+            return this;
+        }
+
+        /**
+         * Sets the number of rays for Depth of Field (DOF) effect.
+         * @param amountOfRays the number of rays to use for DOF
+         * @return the builder instance
+         * @throws IllegalArgumentException if amountOfRays is less than or equal to zero
+         */
+        public Builder setAmountOfRays_DOF(int amountOfRays) {
+            if (amountOfRays <= 0) {
+                throw new IllegalArgumentException("amountOfRays must be greater than zero");
+            }
+            this.camera.amountOfRays_DOF = amountOfRays;
+            return this;
+        }
+
+        /**
+         * Sets the aperture radius for Depth of Field (DOF) effect.
+         * @param apertureRadius the radius of the aperture
+         * @return the builder instance
+         * @throws IllegalArgumentException if aperture is less than or equal to zero
+         */
+        public Builder setApertureRadius(double apertureRadius) {
+            if (apertureRadius <= 0) {
+                throw new IllegalArgumentException("aperture must be greater than zero");
+            }
+            this.camera.apertureRadius = apertureRadius;
+            return this;
+        }
+
+        /**
+         * Sets the distance from the camera to the focal plane for Depth of Field (DOF) effect.
+         * @param depthOfField the distance to the focal plane
+         * @return the builder instance
+         * @throws IllegalArgumentException if depthOfField is less than or equal to zero
+         */
+        public Builder setDepthOfField(double depthOfField) {
+            if (depthOfField <= 0) {
+                throw new IllegalArgumentException("depthOfField must be greater than zero");
+            }
+            this.camera.depthOfField = depthOfField;
+            return this;
+        }
+
+        /**
+         * Sets whether to use Anti-Aliasing (AA) effect or not.
+         * @param useAA true to enable AA, false to disable
+         * @return the builder instance
+         */
+        public Builder setUseAA(boolean useAA) {
+            this.camera.useAA = useAA;
+            return this;
+        }
+
+        /**
+         * Sets the number of rays for Anti-Aliasing (AA) effect.
+         * @param amountOfRays the number of rays to use for AA
+         * @return the builder instance
+         * @throws IllegalArgumentException if amountOfRays is less than or equal to zero
+         */
+        public Builder setAmountOfRays_AA(int amountOfRays) {
+            if (amountOfRays <= 0) {
+                throw new IllegalArgumentException("amountOfRays must be greater than zero");
+            }
+            this.camera.amountOfRays_AA = amountOfRays;
             return this;
         }
 

@@ -221,6 +221,10 @@ public class Camera implements Cloneable {
      */
     private ArrayList<Ray> constructDOFRaysFromDirection(Vector direction) {
         ArrayList<Ray> DOFRays = new ArrayList<>();
+        
+        if (Util.isZero(depthOfField)) {
+            return DOFRays;
+        }
 
         Point focalPoint = p0.add(direction.scale(depthOfField));  
 
@@ -228,8 +232,15 @@ public class Camera implements Cloneable {
                 p0, vRight, vUp, apertureRadius, amountOfRays_DOF, boardShape);  
 
         for (Point aperturePoint : aperturePoints) {
-            Vector dir = focalPoint.subtract(aperturePoint).normalize();
-            DOFRays.add(new Ray(aperturePoint, dir));
+        	 try {
+                 Vector dir = focalPoint.subtract(aperturePoint);
+                 if (Util.isZero(dir.lengthSquared())) continue; // הגנה מהווקטור האפס
+                 dir = dir.normalize();
+                 DOFRays.add(new Ray(aperturePoint, dir));
+             } catch (IllegalArgumentException e) {
+                 // וקטור אפס – דלגי
+                 continue;
+             }
         }
 
         return DOFRays;

@@ -100,6 +100,19 @@ public class Color {
       if (k < 0.0) throw new IllegalArgumentException("Can't scale a color by a negative number");
       return new Color(rgb.scale(k));
    }
+   
+   /**
+    * Returns the Euclidean distance between this color and another color
+    * @param other the other color to compare
+    * @return the Euclidean distance
+    */
+   public double distance(Color other) {
+       double dr = this.rgb.d1() - other.rgb.d1();
+       double dg = this.rgb.d2() - other.rgb.d2();
+       double db = this.rgb.d3() - other.rgb.d3();
+       return Math.sqrt(dr * dr + dg * dg + db * db);
+   }
+
 
    /**
     * Scale the color by (1 / reduction factor)

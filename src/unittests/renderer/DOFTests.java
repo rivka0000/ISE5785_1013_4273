@@ -147,6 +147,17 @@ class DOFTests {
 	        scene.lights.add(new PointLight(new Color(150, 150, 150), new Point(40, 40, 40)));
 	        scene.lights.add(new PointLight(new Color(300, 150, 150), new Point(-50, 60, 100)));
 	        scene.lights.add(new DirectionalLight(new Color(200, 200, 250), new Vector(-1, -1, -1)));
+	        scene.lights.add(
+	        	    new SpotLight(
+	        	        new Color(1500, 800, 400),                  // עוצמה חזקה
+	        	        new Point(-5, 40, 100),                     // נקודת התחלה - מעל הכדור
+	        	        new Vector(0, -1, -1))                      // כיוון - ישירות למטה ולפנים
+	        	        .setKl(0.0001)
+	        	        .setKq(0.000005)
+	        	        .setNarrowBeam(25)
+	        	);
+
+
 
 	        // גריד
 	        int rows = 4;
@@ -237,6 +248,17 @@ class DOFTests {
 	        scene.lights.add(new PointLight(new Color(150, 150, 150), new Point(40, 40, 40)));
 	        scene.lights.add(new PointLight(new Color(300, 150, 150), new Point(-50, 60, 100)));
 	        scene.lights.add(new DirectionalLight(new Color(200, 200, 250), new Vector(-1, -1, -1)));
+	        scene.lights.add(
+	        	    new SpotLight(
+	        	        new Color(1500, 800, 400),                  // עוצמה חזקה
+	        	        new Point(-5, 40, 100),                     // נקודת התחלה - מעל הכדור
+	        	        new Vector(0, -1, -1))                      // כיוון - ישירות למטה ולפנים
+	        	        .setKl(0.0001)
+	        	        .setKq(0.000005)
+	        	        .setNarrowBeam(25)
+	        	);
+
+
 
 	        int rows = 4;
 	        int columns = 7;

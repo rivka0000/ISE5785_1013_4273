@@ -46,7 +46,6 @@ public class Ray {
         this.direction = direction.normalize();
     }
     
-   
 
 
     
@@ -65,11 +64,18 @@ public class Ray {
      * @return the point on the ray at the distance t from the head
      */
     public Point getPoint(double t) {
-        // if t is zero, return the head point
-        if(Util.isZero(t))
+        if (Util.isZero(t)) {
             return head;
+        }
+
+        // אם כיוון הקרן אפסי (שלא צריך לקרות) – החזר את הראש
+        if (direction.lengthSquared() == 0) {
+            return head;
+        }
+
         return head.add(direction.scale(t));
     }
+
 
     /**
      * Gets the direction vector of the ray.

@@ -29,14 +29,13 @@ public class CameraTests_MP2 {
 	            .setLocation(new Point(0, 0, 200))
 	           .setDepthOfField(180)
 	           .setAmountOfRays_DOF(81)
-	           .setApertureRadius(1.0)
+	            .setApertureRadius(1.0)
 	            .setUseDOF(true);
 	}
 	
 	
 	@Test
 	public void testFinalScene_noASS_noMT() {
-		
 		 Scene scene = createScene();
 	        Camera camera = baseCamera(scene)
 	            .setMultithreading(0)
@@ -67,8 +66,8 @@ public class CameraTests_MP2 {
 	public void testFinalScene_yesASS_yesMT() {
 		Scene scene = createScene();
         Camera camera = baseCamera(scene)
+            .setAdaptiveDOF(true, 4, 3, 20)
             .setMultithreading(-2)
-            .setAdaptiveDOF(true, 9, 5, 2)
             .build();
 
         long start = System.nanoTime();
@@ -81,8 +80,8 @@ public class CameraTests_MP2 {
 	public void testFinalScene_yesASS_noMT() {
 		 Scene scene = createScene();
 	        Camera camera = baseCamera(scene)
+	            .setAdaptiveDOF(true, 4, 3, 20) 
 	            .setMultithreading(0)
-	            .setAdaptiveDOF(true, 9, 5, 2) 
 	            .build();
 
 	        long start = System.nanoTime();

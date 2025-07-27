@@ -53,8 +53,6 @@ public class Camera implements Cloneable {
     private int numOfSubAreaSamplesAdaptiveDOF = 0;
     private int maxSamplesAdaptiveDOF = 0;
     private double colorThresholdAdaptiveDOF = -1;
-
-    
     
     /** The shape of the board for jittered sampling (SQUARE or CIRCLE). */
     private BoardShape boardShape = BoardShape.SQUARE;
@@ -76,9 +74,6 @@ public class Camera implements Cloneable {
 
     /** Number of rays for Anti-Aliasing (AA) effect. */
     private int amountOfRays_AA = 0;
-    
-    
-    
 
     /**
      * Default constructor for Camera.
@@ -142,7 +137,6 @@ public class Camera implements Cloneable {
     	            yield renderImageRawThreads();
     	        }
     	    };
-
     }
 
     private Camera renderImageNoThreads() {
@@ -181,7 +175,6 @@ public class Camera implements Cloneable {
         return this;
     }
 
-    
     /**
      * Draws a grid of lines on the image, marking the borders of the pixels.
      * Only the grid lines are colored, while other pixels remain unchanged.
@@ -206,7 +199,6 @@ public class Camera implements Cloneable {
         return this;
     }
 
-    
     /**
      * Writes the current image to a file with the given name.
      * The method delegates the task of saving the image to the imageWriter.
@@ -227,7 +219,6 @@ public class Camera implements Cloneable {
      */
     public void castRay(int j, int i) {
         Color color;
-
         boolean useAA = amountOfRays_AA > 1;
         boolean useDOF = amountOfRays_DOF > 1 && apertureRadius != 0;
 
@@ -293,7 +284,6 @@ public class Camera implements Cloneable {
         return true;
     }
 
-    
     private Color averageColors(List<Color> colors) {
         Color total = Color.BLACK;
         for (Color c : colors) {
@@ -301,7 +291,6 @@ public class Camera implements Cloneable {
         }
         return total.reduce(colors.size());
     }
-
 
     /**
      * Constructs Depth of Field (DOF) rays for a specific pixel.
@@ -316,9 +305,6 @@ public class Camera implements Cloneable {
         Vector direction = pixelCenter.subtract(p0).normalize();  
         return constructDOFRaysFromDirection(direction);
     }
-
-
-
 
     /**
      * Constructs Depth of Field (DOF) rays in a specific direction.
@@ -354,8 +340,6 @@ public class Camera implements Cloneable {
         return DOFRays;
     }
 
-
-
     /**
      * Constructs Anti-Aliasing (AA) rays for a specific pixel.
      *
@@ -373,7 +357,6 @@ public class Camera implements Cloneable {
 
         return AARays;
     }
-
 
     /**
      * Generates Anti-Aliasing (AA) vectors for a specific pixel.
@@ -400,8 +383,6 @@ public class Camera implements Cloneable {
         return AAVectors;
     }
 
-
-
     /**
      * Calculates the center point of a pixel in the view plane.
      *
@@ -422,8 +403,6 @@ public class Camera implements Cloneable {
 
         return pij;
     }
-
-
 
     /**
      * Combines Anti-Aliasing (AA) and Depth of Field (DOF) effects for a specific pixel.
@@ -517,8 +496,7 @@ public class Camera implements Cloneable {
             return this; // Return the builder for method chaining
         }
         
-        
-
+ 
 
         /**
          * Constructs a new Builder instance initializing an empty Camera.

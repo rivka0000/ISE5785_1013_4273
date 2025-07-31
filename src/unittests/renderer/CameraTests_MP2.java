@@ -27,10 +27,10 @@ public class CameraTests_MP2 {
 	            .setVpSize(40, 40)
 	            .setDirection(new Vector(0, 0, -1), new Vector(0, 1, 0))
 	            .setLocation(new Point(0, 0, 200))
-	           .setDepthOfField(180)
-	           .setAmountOfRays_DOF(81)
-	            .setApertureRadius(1.0)
-	            .setUseDOF(true);
+	         //  .setDepthOfField(180)
+	          // .setAmountOfRays_DOF(81)
+	           // .setApertureRadius(1.0)
+	            .setUseDOF(false);
 	}
 	
 	

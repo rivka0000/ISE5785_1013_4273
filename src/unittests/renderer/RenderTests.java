@@ -8,6 +8,7 @@ import geometries.*;
 import lighting.AmbientLight;
 import primitives.*;
 import renderer.*;
+import renderer.BlackBoard.BoardShape;
 import scene.Scene;
 import lighting.SpotLight;
 
@@ -26,6 +27,10 @@ public class RenderTests {
       .setVpDistance(100) //
       .setVpSize(500, 500);
 
+   /**
+    * Produce a scene with basic 3D model and render it into a png image with a
+    * grid
+    */
    /**
     * Produce a scene with basic 3D model and render it into a png image with a
     * grid
@@ -51,6 +56,48 @@ public class RenderTests {
          .renderImage() //
          .printGrid(new Color(YELLOW),100) //
          .writeToImage("Two color render test");
+   }
+   
+   @Test
+   public void renderTwoColorTestWithDOF() {
+       Scene scene = new Scene("Two color with DOF")
+           .setBackground(new Color(75, 127, 90))
+           .setAmbientLight(new AmbientLight(new Color(255, 191, 191)));
+
+       // הוספת הגיאומטריות
+       scene.geometries.add(
+           // כדור – רחוק יותר, יהיה מחוץ לפוקוס
+           new Sphere(new Point(0, 0, -300), 50d)
+               .setEmission(new Color(java.awt.Color.BLUE)),
+           
+           // משולשים – קרובים יותר, יהיו בפוקוס
+           new Triangle(new Point(-100, 0, -100), new Point(0, 100, -100), new Point(-100, 100, -100))
+               .setEmission(new Color(java.awt.Color.GREEN)),
+           new Triangle(new Point(-100, 0, -100), new Point(0, -100, -100), new Point(-100, -100, -100))
+               .setEmission(new Color(java.awt.Color.GREEN)),
+           new Triangle(new Point(100, 0, -100), new Point(0, -100, -100), new Point(100, -100, -100))
+               .setEmission(new Color(java.awt.Color.GREEN))
+       );
+
+       // בניית המצלמה עם DOF
+       Camera.getBuilder()
+           .setLocation(new Point(0, 0, 1000)) // מיקום המצלמה מאחור
+           .setDirection(new Vector(0, 0, -1), new Vector(0, 1, 0)) // מבט ישר קדימה
+           .setVpSize(200, 200)
+           .setVpDistance(1000)
+           .setResolution(1000, 1000)
+           .setRayTracer(scene, RayTracerType.SIMPLE)
+           .setUseDOF(true)
+           .setAmountOfRays_DOF(81)
+           .setApertureRadius(10.0)
+           .setDepthOfField(1100) // המשולשים ב־z = -100 ייראו חדים
+           .setBoardShape(BoardShape.SQUARE)
+           .setMultithreading(-1)
+           .setAdaptiveDOF(false, 0, 0, 0)
+           .build()
+           .renderImage()
+           .printGrid(new Color(java.awt.Color.YELLOW), 100)
+           .writeToImage("TwoColor_with_DOF_onlySphereBlurred");
    }
 
    @Test

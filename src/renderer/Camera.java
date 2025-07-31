@@ -246,7 +246,7 @@ public class Camera implements Cloneable {
     }
 
     private Color adaptiveDofRecursive(Point pixelCenter, int subSamples, int depth) {
-        if (depth >= maxSamplesAdaptiveDOF) {
+        if (depth >= maxSamplesAdaptiveDOF) { 
             Vector dir = pixelCenter.subtract(p0).normalize();
             ArrayList<Ray> rays = constructDOFRaysFromDirection(dir);
             return averageRays(rays);
